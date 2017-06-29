@@ -7,97 +7,167 @@
 
     <script src="js/lib/jquery-2.2.4.min.js"></script>
     <script src="js/lib/d3.v4.min.js"></script>    
+    <script src="js/clickhandlers.js"></script>
+    <script src="js/timemachine.js"></script>
     <script src="js/visuals.js"></script>
     <script src="js/network.js"></script>
+    <script src="js/chord.js"></script>
     
-    <script>
-    $(document).ready(function() {
-			console.log("loaded");
-      $('#start-visualisation').on('click',function(){ 
-        initializeServer("0"); 
-      });
-	  });
-    </script>
-    
-    <link rel="stylesheet" href="d3.css">
+    <link rel="stylesheet" href="css/d3.css">
+    <link rel="stylesheet" href="css/font-awesome.min.css">
     
   </head>
   <body>
     <div class="wrapper">
-      <h1>p2p Network Connectivity Graph</h1>
+      <header> 
+        <div class="logo">
+          <img src="img/swarm-logo-horizontal.png"/>
+          <img src="img/swarm-text.png"/>
+        </div>
+        <!-- Currently disabled
+        <div class="backend-monitor">
+          <div class="monitor-label">Backend connection status</div>
+          <div class="monitor-indicator" id="backend-ok"></div>
+          <div class="monitor-indicator" id="backend-nok"></div>
+        </div>
+        -->
+        <div class="title">
+          P2P Network Connectivity Graph
+        </div>
+        <!-- Currently disabled
+        <div class="menu" onclick="showMenu()">
+          <div class="bar1"></div>
+          <div class="bar2"></div>
+          <div class="bar3"></div>
+        </div>
+        -->
+      </header>
+      <menu>
+       <ul class="mainmenu">
+          <li id="selectmocker" class="menuitem">Select Mocker</li>
+       </ul>  
+      </menu> 
       <div id="sidebar" class=sidebar>
-        <div id="selected-node">
-          <div class="actions">
-            <button class="inline" id="start-visualisation">Start New Visualisation</button>
-            <div class="inline elapsed">Time elapsed: <span id="time-elapsed"></span></div>
-          </div>
-            <div class="counts">
-              <h3>Nodes</h1>
-              <table class="node-counts counts-table">
-                <thead>
-                  <td>UP</td>
-                  <td>ADD</td>
-                  <td>REMOVE</td>
-                </thead>
-                <tbody>
-                  <td id="nodes-up-count"></td>
-                  <td id="nodes-add-count"></td>
-                  <td id="nodes-remove-count"></td>
-                </tbody>
-              </table>
-            </div>
-
-            <div class="counts clear">
-              <h3>Connections</h1>
-              <table class="edge-counts counts-table">
-                <thead>
-                  <td>UP</td>
-                  <td>ADD</td>
-                  <td>REMOVE</td>
-                </thead>
-                <tbody>
-                  <td id="edges-up-count"></td>
-                  <td id="edges-add-count"></td>
-                  <td id="edges-remove-count"></td>
-                </tbody>
-              </table>
-            </div>
-
-          <div class="node-selected">
-            <div class="node-info">
-              <h3>Node Information</h1>
-              <ul>
-                <li> ID: <span class="node-id"></span> </li>
-                <li> Database Size: <span class="node-balance"></span> </li>
-              </ul>            
-
-              <pre id="kamemlia-text-table" class="fixed-width"> ___  __    ________  ________     
-|\  \|\  \ |\   __  \|\   ___ \    
-\ \  \/  /|\ \  \|\  \ \  \_|\ \   
- \ \   ___  \ \   __  \ \  \ \\ \  
-  \ \  \\ \  \ \  \ \  \ \  \_\\ \ 
-   \ \__\\ \__\ \__\ \__\ \_______\
-    \|__| \|__|\|__|\|__|\|_______|
-                                   
-                                   
-                                   
-</pre>
-
-<!--               <table class="node-kademlia-table">
-                <thead>
-                  <td>Id</td>
-                  <td>IP:Port</td>
-                  <td>Distance</td>
-                </thead>
-                <tbody>
-                  
-                </tbody>
-              </table> -->
+        <div class="controls">
+          <i id="power" class="fa fa-power-off power-off" aria-hidden="true"></i>
+          <i id="start" class="invisible fa fa-play" aria-hidden="true"></i>
+          <i id="stop" class="invisible fa fa-stop" aria-hidden="true"></i>
+          <i id="upload" class="invisible fa fa-upload" aria-hidden="true"></i>
+          <i id="snapshot" class="invisible fa fa-camera-retro" aria-hidden="true"></i>
+          <i id="play" class="invisible fa fa-play-circle" aria-hidden="true"></i>
+          <i id="refresh" class="invisible fa fa-fast-backward" aria-hidden="true"></i>
+          <div class="display">
+            <div class="elapsed">Time elapsed: <span id="time-elapsed">00:00:00</span></div>
+            <div class="label">
+              <!--
+              Selected simulation: <div id="selected-simulation"></div>
+              -->
             </div>
           </div>
         </div>
+
+        <div class="timemachine-section">
+          <input id="timemachine" style="display:none" type="range">
+          <div>
+            <label for="replaySpeed">Replay Speed (ms)</label>
+            <input type="text" name="replaySpeed" id="replaySpeed" value="200">
+            <button type="button" class="speedDial" id="incSpeed" name="incSpeed">+</button>
+            <button type="button" class="speedDial" id="decSpeed" name="decSpeed">-</button>
+          </div>
+        </div>
+
+        <div class="control-options">
+          <label for="showlog">Enable log console</label>
+          <label>
+                <input type="checkbox" checked="checked" id="showlogs" name="showlogs" value="true">
+                <span></span>
+          </label>
+          <label for="replaySpeed">Record message events</label>
+          <label>
+            <input id="rec-messages" type="checkbox" class="checkbox"/>
+            <span></span>
+          </label>
+          <button id="show-conn-graph" onclick="showConnectionGraph()" class="invisible link-action">Show connection graph </button>
+          <i id="info-message-events" class="fa info-circle" aria-hidden="true"></i>
+        </div>
+
+        <div class="counts">
+          <table>
+            <thead>
+              <td class="count-type node-counts">Nodes</td>
+              <td></td>
+              <td class="count-type conn-counts">Connections</td>
+              <td></td>
+              <td class="count-type msg-counts">Messages</td>
+            </thead>
+            <tbody>
+              <tr>
+                <td width="20%"id="nodes-up-count" class="up-count node-counts">0</td>
+                <td width="20%">
+                  <div class="subcount node-counts">
+                    <p class="count-label">Added</p><div id="nodes-add-count" class="count-value">0</div>
+                    <p class="count-label">Removed</p><div id="nodes-remove-count" class="count-value">0</div>
+                  </div>
+                </td>
+                <td width="20%" id="edges-up-count" class="up-count conn-counts">0</td>
+                <td width="20%">
+                  <div class="subcount conn-counts">
+                   <p class="count-label">Added</p><div id="edges-add-count" class="count-value">0</div>
+                   <p class="count-label">Removed</p><div id="edges-remove-count" class="count-value">0</div>
+                  </div>
+                </td>
+                <td width="20%" id="msg-count" class="up-count msg-counts">0</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        
+        <div id="selected-node">
+          <div class="node-bar">
+            <h3>Node Information</h1>
+            <div class="node-display">
+              ID: <span id="node-id"></span> <i id="healthy" class="fa fa-circle invisible" aria-hidden="true"></i>
+              <br/>Index: <span id="node-index"></span> 
+            </div>
+            <div class="node-actions">
+              <input type="hidden" id="target-id"/>
+              <input type="hidden" id="full-node-id"/>
+              <button type="button" class="nodeactions" onclick="killNode()">Stop this node</button>
+              <button type="button" class="nodeactions" onclick="connectTo()">Connect this node to peer</button>
+              <button type="button" class="nodeactions" onclick="killLink()">Disconnect a link</button>
+              <button type="button" class="nodeactions" onclick="clearSelection()">Clear Selection</button>
+            </div>
+            <pre id="node-kademlia-table" class="kademlia-info"></pre>              
+            <!--
+            <div id="kad-hint" class="invisible hint">The network updated. The above routing table may be out-of-date.
+              <button class="small-link-action" onclick='refreshKadTable()'>Refresh</button>
+            </div> 
+            -->
+          </div>
+        </div>
       </div>
-      <svg id="network-visualisation" width="780" height="780"></svg>
+      <div id="error-messages">
+        Oooops - error connecting to backend!
+        <br/>
+        <div id="error-reason">
+        </div>
+      </div>
+      <div id="status-messages">
+      </div>
+      <div id="visualisation-wrapper">
+        <svg id="network-visualisation"></svg>
+      </div>
+    </div>
+    <div id="Overlay" name="Overlay" class="overlay">
+    </div>
+    <div id="select-mocker" name="select-mocker" class="ui-dialog">
+    </div>
+    <div id="connection-graph" class="ui-dialog">
+       <svg id="chord-diagram"></svg>
+       <div class="invisible action-div" onclick="toggleChord()" id="toggle-chord">Show message graph</div>
+    </div>
+    <div id="output-window">
+      <div id="log-console"> </div>
     </div>
   </body>
 </html>
