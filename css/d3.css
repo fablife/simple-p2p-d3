@@ -9,15 +9,18 @@ header {
   margin: 0;
   padding: 0;
   height: 60px;
-  background-color: #f69047;
   width: 100%; 
   display: flex;
+  position: fixed;
+  border-bottom: 4px solid rgba(255,255,255,0.2);
+  box-shadow: 3px 3px 6px rgba(255,255,255,0.5);
+  background-clip: padding-box; 
 }
 
 .title {
-  font-size:14pt;
+  font-size:1.5em;
   font-weight: bold;
-  color: #111;
+  color: whitesmoke;
   text-align: center;
   width: 80%;
   display: inline-block;
@@ -25,6 +28,7 @@ header {
 }
 
 header .logo {
+  margin-left: 20px;
   padding: 8px;
   display: inline-block;
   width: 10%;
@@ -34,13 +38,6 @@ header .menu {
   padding: 8px;
   display: inline-block;
   cursor: pointer;
-}
-
-.bar1, .bar2, .bar3 {
-  width: 35px;
-  height: 5px;
-  background-color: #333;
-  margin: 6px 0;
 }
 
 menu {
@@ -172,6 +169,34 @@ input[type=range]:focus::-ms-fill-upper {
   background: #367ebd;
 }
 
+.menu-circle {
+  position: absolute;
+  top: 80px;
+  left: 20px;
+  border: 2px solid #555;
+  padding: 3px;
+  border-radius: 50%;
+  cursor: pointer;
+  color: whitesmoke;
+  font-size: 1.5em;
+  width: 1.5em;
+  height: 1.5em;
+  line-height: 1.5em;
+  text-align: center;
+}
+
+.menu-circle:hover {
+  background-color: whitesmoke;
+  color: #111;
+}
+
+.bar1, .bar2, .bar3 {
+  width: 25px;
+  height: 5px;
+  background: linear-gradient(#ccc, #555);
+  margin: 4px 0;
+}
+
 .display {
   color: #cc2200;
   font-size: 14px;
@@ -191,16 +216,27 @@ input[type=range]:focus::-ms-fill-upper {
 }
 
 .sidebar {
-  height:90vh;
+  height:70vh;
   width:30vw;
   float:left;
   margin: 10px 0px 10px 20px;  
   /*border: solid 1pt #2b2a2a;*/
   color: lightgrey;
+  /*
   padding-left: 20px;
   padding-right: 20px;
+  */
+  position: absolute;
+  z-index: 20;
+  opacity: 0.9;
+  left: 0;
+  transition: 1s all;
+  top: 150px;
 }
 
+.sidebar.closepane {
+  left: -40vw;
+}
 .sidebar h3 {
   color: white;
   letter-spacing: 0.04em;
@@ -392,6 +428,8 @@ input[type=range]:focus::-ms-fill-upper {
   display: none;
   text-align: center;
   padding-top: 6px;
+  position: absolute;
+  top: 70px;
 }
 
 #status-messages {
@@ -400,6 +438,8 @@ input[type=range]:focus::-ms-fill-upper {
   display: none;
   text-align: center;
   padding-top: 6px;
+  position: absolute;
+  top: 70px;
 }
 
 .kademlia-info {

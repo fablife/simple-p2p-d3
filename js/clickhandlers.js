@@ -78,6 +78,10 @@ $(document).ready(function() {
     $('#output-window').toggleClass("closepane"); 
   });
 
+  $('.menu-circle').on('click',function(){ 
+    $('.sidebar').toggleClass("closepane"); 
+  });
+
   $('#selected-simulation').text(selectedSim);
 
   //pollServer();

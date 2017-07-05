@@ -5,8 +5,9 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1, maximum-scale=1">
 
+    <script src="js/lib/3d-force-graph@1.5.0.min.js"></script>
     <script src="js/lib/jquery-2.2.4.min.js"></script>
-    <script src="js/lib/d3.v4.min.js"></script>    
+
     <script src="js/clickhandlers.js"></script>
     <script src="js/timemachine.js"></script>
     <script src="js/visuals.js"></script>
@@ -18,11 +19,14 @@
     
   </head>
   <body>
+    <div class="menu-circle">
+      <i id="dashboard" class="fa fa-cog" aria-hidden=true></i>
+    </div>
     <div class="wrapper">
       <header> 
         <div class="logo">
-          <img src="img/swarm-logo-horizontal.png"/>
-          <img src="img/swarm-text.png"/>
+          <img src="img/swarm-logo-horizontal-w.png"/>
+          <img src="img/swarm-text-w.png"/>
         </div>
         <!-- Currently disabled
         <div class="backend-monitor">
@@ -155,7 +159,10 @@
       <div id="status-messages">
       </div>
       <div id="visualisation-wrapper">
+        <div id="3d-graph"></div>
+<!--
         <svg id="network-visualisation"></svg>
+-->
       </div>
     </div>
     <div id="Overlay" name="Overlay" class="overlay">
