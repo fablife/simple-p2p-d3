@@ -8,17 +8,20 @@ class P2Pd3Sidebar {
 
   updateSidebarSelectedNode(data) {
     //reset highlighted links if any
+    /*
     this.visualisation.linkCollection
       .attr("stroke", "#808080")
       .attr("stroke-width", 1.5)
       .classed("stale",false);
-
+    */
+    this.selectNode(data);
+    //this.selectConnections(data.id);
+    this.selectConnections(data);
     var selectedNode = $(this.sidebar).find('#selected-node');
     selectedNode.addClass('node-selected');
     selectedNode.find('#full-node-id').val(data.id);
     selectedNode.find('#node-id').html(nodeShortLabel(data.id));
     selectedNode.find('#node-index').html(data.index);
-    this.selectConnections(data.id);
     if (this.visualisation == Timemachine) {
       return;
     }
@@ -26,6 +29,46 @@ class P2Pd3Sidebar {
     //selectedNode.find('.node-balance').html(data.balance);
 
     this.getNodeInfo(data.id);
+  }
+
+  selectNode(node) {
+    node["color"] = "#f69047";
+  }
+
+  selectConnections(node) {
+
+    var nodes = [node];
+    var conns = [];
+    var nodeSet = new Set();
+
+    for (let c of this.visualisation.graphData.links) {
+      if (c.source.id == node.id) {
+        conns.push(c);
+        nodeSet.add(c.target);
+      } else if (c.target.id == node.id) {
+        conns.push(c);
+        nodeSet.add(c.source);
+      }
+    }
+    for (let n of nodeSet) {
+      nodes.push(n);
+    }
+    detail.graphData = {
+      nodes: nodes,
+      links: conns,
+      msgs:  []
+    };
+    this.detailView = ForceGraph3D()
+                  (document.getElementById("graph-detail"))
+                  .graphData(detail.graphData);
+    this.detailView.width("400");
+    this.detailView.height("400");
+    $("#graph-detail").addClass("appear");
+    /*
+    this.detailView.onNodeClick(function(node) {
+      self.sidebar.updateSidebarSelectedNode(node);    
+    });
+    */
   }
 
   getNodeInfo(nodeId) {
@@ -49,7 +92,7 @@ class P2Pd3Sidebar {
     if (this.ws) {
       this.ws.close();
     }
-    this.ws = new WebSocket("ws://localhost:8888/networks/0/nodes/" + nodeId + "/rpc");
+    this.ws = new WebSocket("ws://localhost:8888/nodes/" + nodeId + "/rpc");
     // Connection opened
     this.ws.addEventListener('open', function (event) {
       classThis.ws.send('{"jsonrpc":"2.0","id":1,"method":"hive_healthy","params": [null]}');
@@ -83,9 +126,9 @@ class P2Pd3Sidebar {
     });
   }
 
-  updateSidebarCounts() {
-    $("#nodes-up-count").text(this.visualisation.graphNodes?this.visualisation.graphNodes.length:"0");
-    $("#edges-up-count").text(this.visualisation.graphLinks?this.visualisation.graphLinks.length:"0");
+  updateSidebarCounts(nodes, links) {
+    $("#nodes-up-count").text(nodes.length);
+    $("#edges-up-count").text(links.length);
     $("#edges-remove-count").text(connRemoveCounter);
     $("#edges-add-count").text(connAddCounter);
     $("#nodes-remove-count").text(nodeRemoveCounter);
@@ -113,6 +156,7 @@ class P2Pd3Sidebar {
     return str.replace(/\n/g,"<br/>");
   }
 
+/*
   selectConnections(id) {
     var self = this;
     //set node links to "foreground" (no opacity)
@@ -144,7 +188,7 @@ class P2Pd3Sidebar {
     nodesSelection.classed("stale", false);
     selectionActive = true;
   }
-
+*/
   clearSelection(fromButton) {
     this.visualisation.linkCollection
       .attr("stroke", "#808080")
@@ -353,7 +397,7 @@ class P2Pd3 {
       this.initialize();
     }
 
-    this.sidebar.updateSidebarCounts();
+    this.sidebar.updateSidebarCounts(this.graphNodes, this.graphLinks);
     //console.log(this.graphNodes);
     //console.log(this.graphLinks);
     this.restartSimulation();

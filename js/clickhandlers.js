@@ -49,9 +49,25 @@ $(document).ready(function() {
   $("#rec-messages").change(function() {
     if(this.checked) {
       rec_messages = true;
+      $("#message-filters").show("slow");
     } else {
       rec_messages = false;
     }
+  });
+
+  $(".selected-protocol").change(function() {
+    let selected =  $(this).val();
+    /* currently: allow to specify a code for each protocol; */
+    /* optional for later: allow to specify devp2p options too; */
+    //if ( selected == "pss" ) {
+      $("#devp2p-options").hide("fast");
+      $("#pss-options").show("slow");
+    /*
+    } else {
+      $("#pss-options").hide("fast");
+      $("#devp2p-options").show("slow");
+    }
+    */
   });
 
   $('.menuitem').on('click',function(){ 
@@ -78,8 +94,12 @@ $(document).ready(function() {
     $('#output-window').toggleClass("closepane"); 
   });
 
-  $('.menu-circle').on('click',function(){ 
+  $('.menu-space').on('click',function(){ 
     $('.sidebar').toggleClass("closepane"); 
+  });
+
+  $('#visualisation-options').on('click', function() {
+    $('.control-options').toggleClass("hidden");
   });
 
   $('#selected-simulation').text(selectedSim);

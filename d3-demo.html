@@ -4,8 +4,10 @@
 	<title>p2p Network Connectivity Graph</title>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1, maximum-scale=1">
-
+    <script src="js/lib/3d-force-graph.js"></script>
+<!--
     <script src="js/lib/3d-force-graph@1.5.0.min.js"></script>
+-->
     <script src="js/lib/jquery-2.2.4.min.js"></script>
 
     <script src="js/clickhandlers.js"></script>
@@ -19,15 +21,13 @@
     
   </head>
   <body>
-    <div class="menu-circle">
-      <i id="dashboard" class="fa fa-cog" aria-hidden=true></i>
-    </div>
     <div class="wrapper">
       <header> 
-        <div class="logo">
-          <img src="img/swarm-logo-horizontal-w.png"/>
-          <img src="img/swarm-text-w.png"/>
-        </div>
+    
+      <div class="menu-space">
+       <label id="drawer-toggle-label"></label>
+      </div>
+
         <!-- Currently disabled
         <div class="backend-monitor">
           <div class="monitor-label">Backend connection status</div>
@@ -35,6 +35,10 @@
           <div class="monitor-indicator" id="backend-nok"></div>
         </div>
         -->
+        <div class="logo">
+          <img src="img/swarm-logo-horizontal-w.png"/>
+          <img src="img/swarm-text-w.png"/>
+        </div>
         <div class="title">
           P2P Network Connectivity Graph
         </div>
@@ -68,6 +72,57 @@
               -->
             </div>
           </div>
+          <i id="visualisation-options" class="fa fa-cog" aria-hidden="true"></i>
+        </div>
+        
+        <div class="control-options hidden">
+          <label for="showlog">Enable log console</label>
+          <label>
+                <input type="checkbox" id="showlogs" name="showlogs" value="true">
+                <span></span>
+          </label>
+          <label for="replaySpeed">Enable message events</label>
+          <label>
+            <input id="rec-messages" type="checkbox" class="checkbox"/>
+            <span></span>
+          </label>
+          <br/>
+          <div id="message-filters">
+            <input type="radio" class="selected-protocol" name="selected-protocol" checked="checked" value="pss">pss
+            <input type="radio" class="selected-protocol" name="selected-protocol" value="hive">hive
+            <input type="radio" class="selected-protocol" name="selected-protocol" value="bzz">bzz
+            <div id="pss-options" class="filter-options">
+              <label for="msg-code">Optionally specify pss message code</label>
+              <input type="text" name="msg-code" id="msg-code" size="4">
+            </div>
+            <div id="devp2p-options" class="filter-options">
+              <div class="filter-option">
+                  <input type="radio" id="filter-handshake" checked="checked" name="devp2p-option" value="00">Handshake
+                  <br/>
+              </div>
+              <div class="filter-option">
+                  <input type="radio" id="filter-disc" name="devp2p-option" value="01">Discovery
+                  <br/>
+              </div>
+              <div class="filter-option">
+                  <input type="radio" id="filter-ping" name="devp2p-option" value="02">Ping
+                  <br/>
+              </div>
+              <div class="filter-option">
+                  <input type="radio" id="filter-pong" name="devp2p-option" value="03">Pong
+                  <br/>
+              </div>
+              <div class="filter-option">
+                  <input type="radio" id="filter-getPeer" name="devp2p-option" value="04">GetPeer
+                  <br/>
+              </div>
+              <div class="filter-option">
+                  <input type="radio" id="filter-peer" name="devp2p-option" value="05">Peer
+              </div>
+            </div>
+          </div>
+          <button id="show-conn-graph" onclick="showConnectionGraph()" class="invisible link-action">Show connection graph </button>
+          <i id="info-message-events" class="fa info-circle" aria-hidden="true"></i>
         </div>
 
         <div class="timemachine-section">
@@ -80,20 +135,6 @@
           </div>
         </div>
 
-        <div class="control-options">
-          <label for="showlog">Enable log console</label>
-          <label>
-                <input type="checkbox" checked="checked" id="showlogs" name="showlogs" value="true">
-                <span></span>
-          </label>
-          <label for="replaySpeed">Record message events</label>
-          <label>
-            <input id="rec-messages" type="checkbox" class="checkbox"/>
-            <span></span>
-          </label>
-          <button id="show-conn-graph" onclick="showConnectionGraph()" class="invisible link-action">Show connection graph </button>
-          <i id="info-message-events" class="fa info-circle" aria-hidden="true"></i>
-        </div>
 
         <div class="counts">
           <table>
@@ -160,6 +201,7 @@
       </div>
       <div id="visualisation-wrapper">
         <div id="3d-graph"></div>
+        <div id="graph-detail"></div>
 <!--
         <svg id="network-visualisation"></svg>
 -->

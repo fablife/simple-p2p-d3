@@ -34,9 +34,10 @@ header .logo {
   width: 10%;
 }
 
-header .menu {
-  padding: 8px;
-  display: inline-block;
+.menu-space {
+  padding-top: 6px;
+  width: 50px;
+  display:inline-block;
   cursor: pointer;
 }
 
@@ -169,27 +170,6 @@ input[type=range]:focus::-ms-fill-upper {
   background: #367ebd;
 }
 
-.menu-circle {
-  position: absolute;
-  top: 80px;
-  left: 20px;
-  border: 2px solid #555;
-  padding: 3px;
-  border-radius: 50%;
-  cursor: pointer;
-  color: whitesmoke;
-  font-size: 1.5em;
-  width: 1.5em;
-  height: 1.5em;
-  line-height: 1.5em;
-  text-align: center;
-}
-
-.menu-circle:hover {
-  background-color: whitesmoke;
-  color: #111;
-}
-
 .bar1, .bar2, .bar3 {
   width: 25px;
   height: 5px;
@@ -216,11 +196,11 @@ input[type=range]:focus::-ms-fill-upper {
 }
 
 .sidebar {
-  height:70vh;
+  height:80vh;
   width:30vw;
   float:left;
   margin: 10px 0px 10px 20px;  
-  /*border: solid 1pt #2b2a2a;*/
+  border: solid 1pt #303030;
   color: lightgrey;
   /*
   padding-left: 20px;
@@ -231,7 +211,9 @@ input[type=range]:focus::-ms-fill-upper {
   opacity: 0.9;
   left: 0;
   transition: 1s all;
-  top: 150px;
+  top: 10vh;
+  background: rgba(48,48,48,0.71);
+  border-radius: 20px;
 }
 
 .sidebar.closepane {
@@ -267,10 +249,17 @@ input[type=range]:focus::-ms-fill-upper {
 }
 
 .control-options {
-  height: 40px;
+  padding: 10px;
+  position: relative;
+  opacity: 1;
   font-size: 0.8em;
-  margin-bottom: 10px;
   padding-top: 15px;
+  transition: all .5s cubic-bezier(.4,0,.2,1);
+}
+
+.control-options.hidden {
+  height: 0px;
+  opacity: 0;
 }
 
 .control-options .fa {
@@ -315,7 +304,7 @@ input[type=range]:focus::-ms-fill-upper {
 
 .counts {
   padding: 10px;
-  background-color: #303030;
+  /*background-color: #303030;*/
   display: inline-block;
   margin-top: 40px;
   text-align: center;
@@ -486,6 +475,7 @@ input[type=range]:focus::-ms-fill-upper {
   opacity: 0.8;
   cursor: pointer;
   color: white;
+  display: none;
 }
 
 #output-window.closepane {
@@ -764,3 +754,86 @@ label span {/* <-- style the artificial checkbox */
   line-height: 20px;
   font-size: 20px;
 }
+
+#graph-detail {
+  position: absolute;
+  top: 120px;
+  visibility: hidden;
+  z-index: 3000;
+  border: 1px solid #303030;
+  opacity: 0;
+  transition: opacity 1s, width 1s, height 1s ease;
+  width: 100px;
+  height: 100px;
+  right: 502px;
+}
+
+#graph-detail.appear {
+  display: inline-block;
+  animation: zoom 1s forwards;
+   -webkit-animation: zoom 1s forwards;
+  opacity: 1;
+  visibility: visible;
+  width: 400px;
+  height: 400px;
+  right: 2px;
+}
+
+@keyframes zoom {
+  from {
+    transform: scale(1,1);
+  }
+  to {
+    transform: scale(1.5,1.5);
+  }
+}
+
+
+@-webkit-keyframes zoom {
+  from {
+    -webkit-transform: scale(1,1);
+  }
+  to {
+    -webkit-transform: scale(1.5,1.5);
+  }
+}
+
+#visualisation-options {
+  font-size: 0.7em;
+  color: #111;
+  line-height: 1.3em;
+  margin-right: -10px;
+}
+
+.filter-options {
+  padding-left: 20px;
+  margin-top: 10px;
+}
+
+.filter-option {
+  height: 30px;
+}
+
+#message-filters,
+#devp2p-options
+ {
+  display: none;
+}
+
+#drawer-toggle {
+  position: absolute;
+  opacity: 0;
+}
+
+#drawer-toggle-label:before {
+  content: '';
+  display: block;
+  position: absolute;
+  height: 2px;
+  width: 24px;
+  background: #8d8d8d;
+  left: 13px;
+  top: 21px;
+  box-shadow: 0 6px 0 #8d8d8d, 0 12px 0 #8d8d8d;
+}
+

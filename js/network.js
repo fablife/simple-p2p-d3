@@ -33,7 +33,14 @@ var nodeRemoveCounter     = 0;
 var connAddCounter        = 0;
 var connRemoveCounter     = 0;
 
+var doLog                 = false;
+
 var visDOM               = "#3d-graph";
+var detail = {};
+
+
+const HIGHLIGHT_LINK_COLOR  = 0x07C288;
+const NORMAL_LINK_COLOR     = 0xf0f0f0;
 
 
 
@@ -86,7 +93,25 @@ function pollServer() {
 }
 
 function setupEventStream() {
-  eventSource = new EventSource(BACKEND_URL + '/events?current=true');
+  let queryOptions = "";
+  if (rec_messages) {
+    let proto = $("input[name=selected-protocol]:checked").val();
+    // console.log(proto);
+    queryOptions = "&filterProtocol=" + proto;
+    if (proto == "pss") {
+      let code = "";
+      if ($("#msg-code").val() != "") {
+        code = $("#msg-code").val();
+      } 
+      queryOptions += "&filterCode=" + code;
+    } else if (proto="devp2p") {
+      queryOptions +=  "&filterCode=" + $("input[name=devp2p-option]:checked").val();
+    } 
+  }
+  let url = BACKEND_URL + '/events?current=true' + queryOptions;
+  //console.log(url);
+
+  eventSource = new EventSource(url);
 
   eventSource.addEventListener("network", function(e) {
     var event = JSON.parse(e.data);
@@ -94,6 +119,8 @@ function setupEventStream() {
     if (event.control) {
       return;
     }
+
+    if (event.type == "msg") console.log(event);
 
     switch(event.type) {
 
@@ -112,12 +139,19 @@ function setupEventStream() {
     }
     eventCounter++;
     update3DGraph();
+    var evtCopy = $.extend(true, {}, event);
+    eventHistory.push({timestamp:$("#time-elapsed").text(), content: evtCopy});
     //updateVisualisationWithClass(graph);
     //console.log(eventCounter);
   });
 
   eventSource.onopen = function() {
     startViz(); 
+    $("#message-filters").attr("disabled","disabled");
+    if ($("#showlogs").is(":checked")) {
+      doLog = true;
+      $("#output-window").show("slow");
+    }
   };
 
   eventSource.onerror = function() {
@@ -145,34 +179,55 @@ function handleNodeEvent(event) {
 
   if (event.node.up) {
    this.graphData.nodes.push(el); 
+   nodeAddCounter++;
+   if (doLog) {
+    writeLog("node",event.control,el.id,"ADD");
+    }
   } else {
+    //console.log("removing node");
     var idx = this.graphData.nodes.findIndex(function(o) {
       return o.id === el.id;
     });
+    //console.log(idx);
     if (idx > -1) {
       this.graphData.nodes.splice(idx, 1);
+      nodeRemoveCounter++;
+    }
+   if (doLog) {
+    writeLog("node",event.control,el.id,"REMOVE");
     }
   }
 }
 
 function handleConnEvent(event) {
+  //console.log(event.conn.distance);
   var el = {
-    distance: 9 - (event.conn.distance / 10),
+    distance: (9 - (event.conn.distance / 10)),
     id:     event.conn.one + "-" + event.conn.other,
     source: event.conn.one,
     target: event.conn.other,
+    color:  NORMAL_LINK_COLOR,
+    opacity: 0.2
     //control: event.control
   };
 
   if (event.conn.up) {
     this.graphData.links.push(el);
+    connAddCounter++;
+   if (doLog) {
+    writeLog("conn",event.control,el.id,"ADD");
+   }
   } else {
     var idx = this.graphData.links.findIndex(function(o) {
       return o.id === el.id;
     });
     if (idx > -1) {
       this.graphData.links.splice(idx, 1);
+      connRemoveCounter++;
     }
+  }
+   if (doLog) {
+    writeLog("conn",event.control,el.id,"REMOVE");
   }
 }
 
@@ -187,6 +242,10 @@ function handleMsgEvent(event) {
     up:     event.msg.up,
     //control: event.control
   });
+  msgCounter++;
+  if (doLog) {
+    writeLog("msg",event.control,el.id,"");
+  }
 }
 
 function selectMockerBackend(id) {
@@ -463,6 +522,8 @@ function funcClose() {
 }
 
 function init3DVisualisation() {
+  var self = this;
+
   this.graphData = {
     nodes: [],
     links: [],
@@ -471,9 +532,11 @@ function init3DVisualisation() {
   this.vis3D = ForceGraph3D()
                 (document.getElementById("3d-graph"))
                 .graphData(this.graphData);
+  this.sidebar = new P2Pd3Sidebar('#sidebar', this);
   this.vis3D.onNodeClick(function(node) {
-    console.log(node);
+    self.sidebar.updateSidebarSelectedNode(node);    
   });
+
   var canvas = $(visDOM).find("canvas");
   canvas.attr("width", $(visDOM).css("width"));
   canvas.attr("height", $(visDOM).css("height"));
@@ -482,27 +545,37 @@ function init3DVisualisation() {
 }
 
 function update3DGraph() {
+  if (rec_messages) {
+    processMsgs(this.graphData);
+  }
   this.vis3D.graphData(this.graphData);
+  this.sidebar.updateSidebarCounts(this.graphData.nodes, this.graphData.links);
+}
+
+function processMsgs(data) {
+  let links = data.links;
+  let msgs  = data.msgs;
+  for (m of msgs) {
+    for (l of links) {
+      if (l.id == m.id) {
+        l.color = HIGHLIGHT_LINK_COLOR; 
+        l.opacity = 1;
+      } else {
+        l.color = NORMAL_LINK_COLOR;
+        l.opacity = 0.2;
+      } 
+    }
+  }
+}
+
+function writeLog(type, control, id,  data) {
+  var str = type + " - " + " Control: " + control + " - " + id + " - " + data + "</br>";
+  $("#log-console").prepend(str);
 }
 
 function updateVisualisationWithClass(graph) {
   var self = this;
 
-  //console.log("Updating visualization with new graph");
-  var evtCopy = $.extend(true, {}, graph);
-  eventHistory.push({timestamp:$("#time-elapsed").text(), content: evtCopy});
-  
-  if ($("#showlogs").is(":checked")) {
-    var objs = [graph.add, graph.remove, graph.message];
-    var act  = [ "ADD", "REMOVE", "MESSAGE" ];
-    for (var i=0;i<objs.length; i++) {
-      for (var k=0; objs[i] && k<objs[i].length; k++) {
-        var obj = objs[i][k];
-        var str = act[i] + " - " + obj.group + " Control: " + obj.control + " - " + obj.data.id + "</br>";
-        $("#log-console").append(str);
-      }
-    } 
-  }
 
   var elem = document.getElementById('output-window');
   elem.scrollTop = elem.scrollHeight;
