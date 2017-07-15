@@ -35,8 +35,15 @@ var connRemoveCounter     = 0;
 
 var doLog                 = false;
 
-var visDOM               = "#3d-graph";
-var detail = {};
+var visDOM                = "#3d-graph";
+var detail                = {};
+
+var nodesById             = {};          
+var selectedNode          = null;
+var updateSelection       = false;
+
+var operation             = "";
+
 
 
 const HIGHLIGHT_LINK_COLOR  = 0x07C288;
@@ -141,6 +148,9 @@ function setupEventStream() {
     update3DGraph();
     var evtCopy = $.extend(true, {}, event);
     eventHistory.push({timestamp:$("#time-elapsed").text(), content: evtCopy});
+    if (updateSelection) {
+      self.sidebar.updateGraph(selectedNode);    
+    }
     //updateVisualisationWithClass(graph);
     //console.log(eventCounter);
   });
@@ -170,19 +180,21 @@ function setupEventStream() {
 
 function handleNodeEvent(event) {
   var el = {
-    id: event.node.config.id,
-    label: event.node.config.id,
-    name: event.node.config.name,
-    up: event.node.up
+    id: event.node.Config.id,
+    label: event.node.Config.id,
+    name: event.node.Config.name,
+    up: event.node.Up,
+    info: event.node.Info
     //control: event.control,
   };
 
-  if (event.node.up) {
+  if (el.up) {
    this.graphData.nodes.push(el); 
    nodeAddCounter++;
+   nodesById[el.id] = el;
    if (doLog) {
-    writeLog("node",event.control,el.id,"ADD");
-    }
+      writeLog("node",event.control,el.id,"ADD");
+   }
   } else {
     //console.log("removing node");
     var idx = this.graphData.nodes.findIndex(function(o) {
@@ -190,19 +202,19 @@ function handleNodeEvent(event) {
     });
     //console.log(idx);
     if (idx > -1) {
+      let prop = el.id;
       this.graphData.nodes.splice(idx, 1);
       nodeRemoveCounter++;
     }
    if (doLog) {
-    writeLog("node",event.control,el.id,"REMOVE");
-    }
+      writeLog("node",event.control,el.id,"REMOVE");
+   }
   }
 }
 
 function handleConnEvent(event) {
   //console.log(event.conn.distance);
   var el = {
-    distance: (9 - (event.conn.distance / 10)),
     id:     event.conn.one + "-" + event.conn.other,
     source: event.conn.one,
     target: event.conn.other,
@@ -210,6 +222,9 @@ function handleConnEvent(event) {
     opacity: 0.2
     //control: event.control
   };
+
+  el.distance = (10 - DefaultPof(nodesById[el.source].info.protocols["bzz"], nodesById[el.target].info.protocols["bzz"],0)) * 10;
+  //console.log(el.distance);
 
   if (event.conn.up) {
     this.graphData.links.push(el);
@@ -226,6 +241,11 @@ function handleConnEvent(event) {
       connRemoveCounter++;
     }
   }
+  if (selectedNode && (selectedNode.id == el.source || selectedNode.id == el.target)) {
+    updateSelection = true;
+  }
+
+
    if (doLog) {
     writeLog("conn",event.control,el.id,"REMOVE");
   }
@@ -284,6 +304,7 @@ function startViz(){
       $("#start").addClass("invisible");
       $("#upload").addClass("invisible");
       $("#snapshot").removeClass("invisible");
+      $("#search-node").removeClass("invisible");
   }, function(e) {
       $("#error-messages").show();
       $("#error-reason").text("Is the backend running?");
@@ -533,15 +554,22 @@ function init3DVisualisation() {
                 (document.getElementById("3d-graph"))
                 .graphData(this.graphData);
   this.sidebar = new P2Pd3Sidebar('#sidebar', this);
-  this.vis3D.onNodeClick(function(node) {
-    self.sidebar.updateSidebarSelectedNode(node);    
-  });
+  this.vis3D.onNodeClick(nodeSelected);
 
   var canvas = $(visDOM).find("canvas");
   canvas.attr("width", $(visDOM).css("width"));
   canvas.attr("height", $(visDOM).css("height"));
   canvas.attr("position", "fixed");
 
+}
+
+function nodeSelected(node) {
+  $(".sm-dialog").hide();
+  selectedNode = node;
+  if (this.detailView) {
+    this.detailView = null;
+  }
+  self.sidebar.updateSidebarSelectedNode(node);    
 }
 
 function update3DGraph() {
@@ -587,3 +615,66 @@ function updateVisualisationWithClass(graph) {
 function showMenu() {
   $('menu').show();
 }
+
+function updateKadTable(nodeId) {
+  this.sidebar.getNodeInfo(nodeId);
+  console.log("Kad table of selected Node updated");
+}
+
+// DefaultPof returns a proximity order comparison operator function
+// where all
+//function DefaultPof(one, other Val, pos int) (int, bool) {
+function DefaultPof(one, other, pos) {
+  const MAX = 256
+  let po = proximityOrder(ToBytes(one), ToBytes(other), pos);
+  if (po >= MAX) {
+		po = MAX;
+  }
+  return po
+}
+
+//function proximityOrder(one, other []byte, pos int) (int, bool) {
+function proximityOrder(one, other, pos) {
+	for (let i=pos / 8; i< one.length; i++) {
+		if (one[i] == other[i]) {
+			continue
+		}
+		let oxo = one[i] ^ other[i];
+		let start = 0;
+		if (i == pos/8) {
+			start = pos % 8;
+		}
+		for (let j=start; j<8; j++) {
+			if (oxo>>(7-j)&0x01 != 0) {
+				return i*8 + j;
+			}
+		}
+	}
+	return one.length * 8
+}
+
+function ToBytes(str) {
+
+  var utf8 = unescape(encodeURIComponent(str));
+
+var arr = [];
+for (var i = 0; i < utf8.length; i++) {
+    arr.push(utf8.charCodeAt(i));
+}
+  return arr;
+
+  var bytes = [];
+  let charCode;
+
+  for (let i = 0; i < str.length; ++i) {
+    charCode = str.charCodeAt(i);
+    bytes.push((charCode & 0xFF00) >> 8);
+    bytes.push(charCode & 0xFF);
+  }
+  return bytes;
+}
+
+
+
+
+

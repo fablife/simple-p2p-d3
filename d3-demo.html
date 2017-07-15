@@ -64,6 +64,7 @@
           <i id="snapshot" class="invisible fa fa-camera-retro" aria-hidden="true"></i>
           <i id="play" class="invisible fa fa-play-circle" aria-hidden="true"></i>
           <i id="refresh" class="invisible fa fa-fast-backward" aria-hidden="true"></i>
+          <i id="search-node" class="invisible fa fa-search" aria-hidden="true"></i>
           <div class="display">
             <div class="elapsed">Time elapsed: <span id="time-elapsed">00:00:00</span></div>
             <div class="label">
@@ -74,123 +75,139 @@
           </div>
           <i id="visualisation-options" class="fa fa-cog" aria-hidden="true"></i>
         </div>
-        
-        <div class="control-options hidden">
-          <label for="showlog">Enable log console</label>
-          <label>
-                <input type="checkbox" id="showlogs" name="showlogs" value="true">
-                <span></span>
-          </label>
-          <label for="replaySpeed">Enable message events</label>
-          <label>
-            <input id="rec-messages" type="checkbox" class="checkbox"/>
-            <span></span>
-          </label>
-          <br/>
-          <div id="message-filters">
-            <input type="radio" class="selected-protocol" name="selected-protocol" checked="checked" value="pss">pss
-            <input type="radio" class="selected-protocol" name="selected-protocol" value="hive">hive
-            <input type="radio" class="selected-protocol" name="selected-protocol" value="bzz">bzz
-            <div id="pss-options" class="filter-options">
-              <label for="msg-code">Optionally specify pss message code</label>
-              <input type="text" name="msg-code" id="msg-code" size="4">
+
+        <div class="sidebar-content"> 
+
+          <div class="sm-dialog">
+            <input id="find-id" class="nodeactions" type="text" placeholder="Provide node name or ID"/>
+            <button type="button" class="nodeactions" onclick="getNodeById()">Find Node</button>
+          </div>
+
+          <div class="control-options hidden">
+            <label for="showlog">Enable log console</label>
+            <label>
+                  <input type="checkbox" id="showlogs" name="showlogs" value="true">
+                  <span></span>
+            </label>
+            <label for="replaySpeed">Enable message events</label>
+            <label>
+              <input id="rec-messages" type="checkbox" class="checkbox"/>
+              <span></span>
+            </label>
+            <br/>
+            <div id="message-filters">
+              <input type="radio" class="selected-protocol" name="selected-protocol" checked="checked" value="pss">pss
+              <input type="radio" class="selected-protocol" name="selected-protocol" value="hive">hive
+              <input type="radio" class="selected-protocol" name="selected-protocol" value="bzz">bzz
+              <div id="pss-options" class="filter-options">
+                <label for="msg-code">Optionally specify pss message code</label>
+                <input type="text" name="msg-code" id="msg-code" size="4">
+              </div>
+              <div id="devp2p-options" class="filter-options">
+                <div class="filter-option">
+                    <input type="radio" id="filter-handshake" checked="checked" name="devp2p-option" value="00">Handshake
+                    <br/>
+                </div>
+                <div class="filter-option">
+                    <input type="radio" id="filter-disc" name="devp2p-option" value="01">Discovery
+                    <br/>
+                </div>
+                <div class="filter-option">
+                    <input type="radio" id="filter-ping" name="devp2p-option" value="02">Ping
+                    <br/>
+                </div>
+                <div class="filter-option">
+                    <input type="radio" id="filter-pong" name="devp2p-option" value="03">Pong
+                    <br/>
+                </div>
+                <div class="filter-option">
+                    <input type="radio" id="filter-getPeer" name="devp2p-option" value="04">GetPeer
+                    <br/>
+                </div>
+                <div class="filter-option">
+                    <input type="radio" id="filter-peer" name="devp2p-option" value="05">Peer
+                </div>
+              </div>
             </div>
-            <div id="devp2p-options" class="filter-options">
-              <div class="filter-option">
-                  <input type="radio" id="filter-handshake" checked="checked" name="devp2p-option" value="00">Handshake
-                  <br/>
-              </div>
-              <div class="filter-option">
-                  <input type="radio" id="filter-disc" name="devp2p-option" value="01">Discovery
-                  <br/>
-              </div>
-              <div class="filter-option">
-                  <input type="radio" id="filter-ping" name="devp2p-option" value="02">Ping
-                  <br/>
-              </div>
-              <div class="filter-option">
-                  <input type="radio" id="filter-pong" name="devp2p-option" value="03">Pong
-                  <br/>
-              </div>
-              <div class="filter-option">
-                  <input type="radio" id="filter-getPeer" name="devp2p-option" value="04">GetPeer
-                  <br/>
-              </div>
-              <div class="filter-option">
-                  <input type="radio" id="filter-peer" name="devp2p-option" value="05">Peer
-              </div>
+            <button id="show-conn-graph" onclick="showConnectionGraph()" class="invisible link-action">Show connection graph </button>
+            <i id="info-message-events" class="fa info-circle" aria-hidden="true"></i>
+          </div>
+
+          <div class="timemachine-section">
+            <input id="timemachine" style="display:none" type="range">
+            <div>
+              <label for="replaySpeed">Replay Speed (ms)</label>
+              <input type="text" name="replaySpeed" id="replaySpeed" value="200">
+              <button type="button" class="speedDial" id="incSpeed" name="incSpeed">+</button>
+              <button type="button" class="speedDial" id="decSpeed" name="decSpeed">-</button>
             </div>
           </div>
-          <button id="show-conn-graph" onclick="showConnectionGraph()" class="invisible link-action">Show connection graph </button>
-          <i id="info-message-events" class="fa info-circle" aria-hidden="true"></i>
-        </div>
 
-        <div class="timemachine-section">
-          <input id="timemachine" style="display:none" type="range">
-          <div>
-            <label for="replaySpeed">Replay Speed (ms)</label>
-            <input type="text" name="replaySpeed" id="replaySpeed" value="200">
-            <button type="button" class="speedDial" id="incSpeed" name="incSpeed">+</button>
-            <button type="button" class="speedDial" id="decSpeed" name="decSpeed">-</button>
+
+          <div class="counts">
+            <table>
+              <thead>
+                <td class="count-type node-counts">Nodes</td>
+                <td></td>
+                <td class="count-type conn-counts">Connections</td>
+                <td></td>
+                <td class="count-type msg-counts">Messages</td>
+              </thead>
+              <tbody>
+                <tr>
+                  <td width="20%"id="nodes-up-count" class="up-count node-counts">0</td>
+                  <td width="20%">
+                    <div class="subcount node-counts">
+                      <p class="count-label">Added</p><div id="nodes-add-count" class="count-value">0</div>
+                      <p class="count-label">Removed</p><div id="nodes-remove-count" class="count-value">0</div>
+                    </div>
+                  </td>
+                  <td width="20%" id="edges-up-count" class="up-count conn-counts">0</td>
+                  <td width="20%">
+                    <div class="subcount conn-counts">
+                     <p class="count-label">Added</p><div id="edges-add-count" class="count-value">0</div>
+                     <p class="count-label">Removed</p><div id="edges-remove-count" class="count-value">0</div>
+                    </div>
+                  </td>
+                  <td width="20%" id="msg-count" class="up-count msg-counts">0</td>
+                </tr>
+              </tbody>
+            </table>
           </div>
-        </div>
+          
 
-
-        <div class="counts">
-          <table>
-            <thead>
-              <td class="count-type node-counts">Nodes</td>
-              <td></td>
-              <td class="count-type conn-counts">Connections</td>
-              <td></td>
-              <td class="count-type msg-counts">Messages</td>
-            </thead>
-            <tbody>
-              <tr>
-                <td width="20%"id="nodes-up-count" class="up-count node-counts">0</td>
-                <td width="20%">
-                  <div class="subcount node-counts">
-                    <p class="count-label">Added</p><div id="nodes-add-count" class="count-value">0</div>
-                    <p class="count-label">Removed</p><div id="nodes-remove-count" class="count-value">0</div>
-                  </div>
-                </td>
-                <td width="20%" id="edges-up-count" class="up-count conn-counts">0</td>
-                <td width="20%">
-                  <div class="subcount conn-counts">
-                   <p class="count-label">Added</p><div id="edges-add-count" class="count-value">0</div>
-                   <p class="count-label">Removed</p><div id="edges-remove-count" class="count-value">0</div>
-                  </div>
-                </td>
-                <td width="20%" id="msg-count" class="up-count msg-counts">0</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-        
-        <div id="selected-node">
-          <div class="node-bar">
-            <h3>Node Information</h1>
-            <div class="node-display">
-              ID: <span id="node-id"></span> <i id="healthy" class="fa fa-circle invisible" aria-hidden="true"></i>
-              <br/>Index: <span id="node-index"></span> 
+          <div id="selected-node">
+            <div class="node-bar">
+              <h3>Node Information</h1>
+              <div class="node-display">
+                ID: <span id="node-id"></span> -  Name:<span id="node-name"></span><i id="healthy" class="fa fa-circle invisible" aria-hidden="true"></i>
+              </div>
+              <div class="node-actions">
+                <input type="hidden" id="target-id"/>
+                <input type="hidden" id="full-node-id"/>
+                <button type="button" class="nodeactions" onclick="killNode()">Stop this node</button>
+                <button type="button" class="nodeactions" onclick="connectTo()">Connect this node to peer</button>
+                <button type="button" class="nodeactions" onclick="killLink()">Disconnect a link</button>
+                <button type="button" class="nodeactions" onclick="clearSelection()">Clear Selection</button>
+              </div>
+              <p id="operation-info"></p>
+              <div id="connect-peer">
+                <br/>
+                <input id="peer-id" type="text" placeholder="Provide node name or ID"/>
+                <button type="button" id="finalizeConnAction"  class="nodeactions" onclick="finalizeConnAction()"></button>
+              </div>
+              <pre id="node-kademlia-table" class="kademlia-info"></pre>              
+              <!--
+              <div id="kad-hint" class="invisible hint">The network updated. The above routing table may be out-of-date.
+                <button class="small-link-action" onclick='refreshKadTable()'>Refresh</button>
+              </div> 
+              -->
             </div>
-            <div class="node-actions">
-              <input type="hidden" id="target-id"/>
-              <input type="hidden" id="full-node-id"/>
-              <button type="button" class="nodeactions" onclick="killNode()">Stop this node</button>
-              <button type="button" class="nodeactions" onclick="connectTo()">Connect this node to peer</button>
-              <button type="button" class="nodeactions" onclick="killLink()">Disconnect a link</button>
-              <button type="button" class="nodeactions" onclick="clearSelection()">Clear Selection</button>
-            </div>
-            <pre id="node-kademlia-table" class="kademlia-info"></pre>              
-            <!--
-            <div id="kad-hint" class="invisible hint">The network updated. The above routing table may be out-of-date.
-              <button class="small-link-action" onclick='refreshKadTable()'>Refresh</button>
-            </div> 
-            -->
           </div>
         </div>
       </div>
+
+
       <div id="error-messages">
         Oooops - error connecting to backend!
         <br/>

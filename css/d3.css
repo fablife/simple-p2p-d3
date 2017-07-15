@@ -3,6 +3,9 @@ body {
   letter-spacing: 0.04em;
   background: black;
   margin: 0;
+  overflow: hidden;
+  max-width: 100%;
+  max-height: 100%;
 }
 
 header {
@@ -68,7 +71,7 @@ li.menuitem:hover {
 
 #network-visualisation {
   /*border: solid 1pt #2b2a2a;*/
-  width: 60vw;
+  width: 55vw;
   height: 90vh;
   padding: 0px;
   margin: 10px 20px;
@@ -233,6 +236,10 @@ input[type=range]:focus::-ms-fill-upper {
   text-indent:0;
 }
 
+.sidebar-content {
+  padding: 20px;
+}
+
 .controls{
   padding: 10px 20px 6px;
   border-radius: 20px 20px;
@@ -303,13 +310,8 @@ input[type=range]:focus::-ms-fill-upper {
 }
 
 .counts {
-  padding: 10px;
   /*background-color: #303030;*/
-  display: inline-block;
-  margin-top: 40px;
   text-align: center;
-  margin: 2px;
-  float: left;
 }
 
 .subcount {
@@ -393,12 +395,10 @@ input[type=range]:focus::-ms-fill-upper {
 }
 
 #selected-node {
+  padding: 20px;
   display: inline-block;
   width: 100%;
-}
-
-.node-bar {
-  visibility: hidden;
+  display: none;
   font-size: 12px;
 }
 
@@ -551,6 +551,9 @@ table.objectlist {
 tr.selectelement td {
   padding: 15px 10px;
   border-bottom: 1px solid #ccc;
+}
+
+{
 }
 
 .nodeactions {
@@ -714,6 +717,15 @@ label {
   margin-right: 5px;
 }
 
+input[type=text] {
+  border: 1px solid #f69047;
+  height: 20px;
+  margin: 0 20px;
+  padding: 0 10px;
+  background-color: #303030;
+  color: #f69047;
+}
+
 .timemachine-section label {
   font-size: 0.8em;
 }
@@ -770,12 +782,11 @@ label span {/* <-- style the artificial checkbox */
 
 #graph-detail.appear {
   display: inline-block;
-  animation: zoom 1s forwards;
-   -webkit-animation: zoom 1s forwards;
+  transition: all 1s ease-in-out;
   opacity: 1;
   visibility: visible;
-  width: 400px;
-  height: 400px;
+  width: 500px;
+  height: 500px;
   right: 2px;
 }
 
@@ -837,3 +848,23 @@ label span {/* <-- style the artificial checkbox */
   box-shadow: 0 6px 0 #8d8d8d, 0 12px 0 #8d8d8d;
 }
 
+#visualisation-wrapper {
+  overflow: hidden;
+}
+
+#connect-peer {
+  display: none;
+}
+
+.full {
+  width: 60%;
+  margin: 0 20%;
+}
+
+.sm-dialog {
+  display: none;
+  margin: 0 10%;
+  padding: 20px;
+  border: 1px solid #f69047;
+  box-shadow: 2px 2px #8d8d8d;
+}

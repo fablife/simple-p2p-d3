@@ -102,6 +102,10 @@ $(document).ready(function() {
     $('.control-options').toggleClass("hidden");
   });
 
+  $("#search-node").click(function() {
+    findNode();
+  });
+
   $('#selected-simulation').text(selectedSim);
 
   //pollServer();
