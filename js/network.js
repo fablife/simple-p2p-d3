@@ -100,21 +100,7 @@ function pollServer() {
 }
 
 function setupEventStream() {
-  let queryOptions = "";
-  if (rec_messages) {
-    let proto = $("input[name=selected-protocol]:checked").val();
-    // console.log(proto);
-    queryOptions = "&filterProtocol=" + proto;
-    if (proto == "pss") {
-      let code = "";
-      if ($("#msg-code").val() != "") {
-        code = $("#msg-code").val();
-      } 
-      queryOptions += "&filterCode=" + code;
-    } else if (proto="devp2p") {
-      queryOptions +=  "&filterCode=" + $("input[name=devp2p-option]:checked").val();
-    } 
-  }
+  let queryOptions = setupFilterOptions();
   let url = BACKEND_URL + '/events?current=true' + queryOptions;
   //console.log(url);
 
@@ -126,8 +112,6 @@ function setupEventStream() {
     if (event.control) {
       return;
     }
-
-    if (event.type == "msg") console.log(event);
 
     switch(event.type) {
 
@@ -151,8 +135,6 @@ function setupEventStream() {
     if (updateSelection) {
       self.sidebar.updateGraph(selectedNode);    
     }
-    //updateVisualisationWithClass(graph);
-    //console.log(eventCounter);
   });
 
   eventSource.onopen = function() {
@@ -178,6 +160,25 @@ function setupEventStream() {
   }
 }
 
+function setupFilterOptions() {
+  let queryOptions = "";
+  if (rec_messages) {
+    let proto = $("input[name=selected-protocol]:checked").val();
+    // console.log(proto);
+    queryOptions = "&filterProtocol=" + proto;
+    if (proto == "pss") {
+      let code = "";
+      if ($("#msg-code").val() != "") {
+        code = $("#msg-code").val();
+      } 
+      queryOptions += "&filterCode=" + code;
+    } else if (proto="devp2p") {
+      queryOptions +=  "&filterCode=" + $("input[name=devp2p-option]:checked").val();
+    } 
+  }
+  return queryOptions;
+}
+
 function handleNodeEvent(event) {
   var el = {
     id: event.node.Config.id,
@@ -189,26 +190,37 @@ function handleNodeEvent(event) {
   };
 
   if (el.up) {
-   this.graphData.nodes.push(el); 
+    addNode(el);
+  } else {
+    removeNode(el);
+  }
+}
+
+function addNode(el) {
+   graphData.nodes.push(el); 
    nodeAddCounter++;
+   if (el.info && el.info.protocols) {
+    el.overlay = el.info.protocols["bzz"];
+   }
    nodesById[el.id] = el;
    if (doLog) {
       writeLog("node",event.control,el.id,"ADD");
    }
-  } else {
-    //console.log("removing node");
-    var idx = this.graphData.nodes.findIndex(function(o) {
-      return o.id === el.id;
-    });
-    //console.log(idx);
-    if (idx > -1) {
-      let prop = el.id;
-      this.graphData.nodes.splice(idx, 1);
-      nodeRemoveCounter++;
-    }
-   if (doLog) {
-      writeLog("node",event.control,el.id,"REMOVE");
-   }
+}
+
+function removeNode(el) {
+  //console.log("removing node");
+  var idx = graphData.nodes.findIndex(function(o) {
+    return o.id === el.id;
+  });
+  //console.log(idx);
+  if (idx > -1) {
+    let prop = el.id;
+    graphData.nodes.splice(idx, 1);
+    nodeRemoveCounter++;
+  }
+  if (doLog) {
+    writeLog("node",event.control,el.id,"REMOVE");
   }
 }
 
@@ -223,30 +235,44 @@ function handleConnEvent(event) {
     //control: event.control
   };
 
-  el.distance = (10 - DefaultPof(nodesById[el.source].info.protocols["bzz"], nodesById[el.target].info.protocols["bzz"],0)) * 10;
-  //console.log(el.distance);
-
   if (event.conn.up) {
-    this.graphData.links.push(el);
-    connAddCounter++;
-   if (doLog) {
-    writeLog("conn",event.control,el.id,"ADD");
-   }
+    addConnection(el);
   } else {
-    var idx = this.graphData.links.findIndex(function(o) {
-      return o.id === el.id;
-    });
-    if (idx > -1) {
-      this.graphData.links.splice(idx, 1);
-      connRemoveCounter++;
-    }
+    removeConnection(el);
   }
+
   if (selectedNode && (selectedNode.id == el.source || selectedNode.id == el.target)) {
+    //there's an active selected node, so update node details
     updateSelection = true;
   }
+}
 
+function addConnection(el) {
+  graphData.links.push(el);
+  connAddCounter++;
+  if (nodesById[el.source].overlay && nodesById[el.target].overlay) {
+    el.distance = (10 - DefaultPof(nodesById[el.source].overlay, nodesById[el.target].overlay,0)) * 10;
+  } else {
+    el.distance = 80;
+  }
+  //console.log(el.distance);
 
-   if (doLog) {
+  if (doLog) {
+    writeLog("conn",event.control,el.id,"ADD");
+  }
+}
+
+function removeConnection(el) {
+  var idx = graphData.links.findIndex(function(o) {
+    return o.id === el.id;
+  });
+
+  if (idx > -1) {
+    graphData.links.splice(idx, 1);
+    connRemoveCounter++;
+  }
+
+  if (doLog) {
     writeLog("conn",event.control,el.id,"REMOVE");
   }
 }
@@ -313,13 +339,12 @@ function startViz(){
 
 function initializeServer(){
   eventHistory = [];
-  //initializeVisualisationWithClass();
   init3DVisualisation();
   $("#error-messages").hide();
   $(".display").css({"opacity": "1"});
   $.get(BACKEND_URL).then(
     function(d){
-      console.log(d);
+      //console.log(d);
       //console.log("Backend ok");
       $(".elapsed").show();
       $("#start").removeClass("invisible");
