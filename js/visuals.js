@@ -25,6 +25,9 @@ class P2Pd3Sidebar {
   }
 
   selectNode(node) {
+    for (let n of graphData.nodes) {
+      n["color"] = "#ffff99";
+    }
     node["color"] = "#f69047";
   }
 

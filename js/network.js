@@ -165,15 +165,15 @@ function setupFilterOptions() {
   if (rec_messages) {
     let proto = $("input[name=selected-protocol]:checked").val();
     // console.log(proto);
-    queryOptions = "&filterProtocol=" + proto;
-    if (proto == "pss") {
+    queryOptions = "&filter=" + proto;
+    if (proto != "devp2p") {
       let code = "";
       if ($("#msg-code").val() != "") {
         code = $("#msg-code").val();
       } 
-      queryOptions += "&filterCode=" + code;
-    } else if (proto="devp2p") {
-      queryOptions +=  "&filterCode=" + $("input[name=devp2p-option]:checked").val();
+      queryOptions += ":" + code;
+    } else {
+      queryOptions +=  ":" + $("input[name=devp2p-option]:checked").val();
     } 
   }
   return queryOptions;
@@ -181,11 +181,11 @@ function setupFilterOptions() {
 
 function handleNodeEvent(event) {
   var el = {
-    id: event.node.Config.id,
-    label: event.node.Config.id,
-    name: event.node.Config.name,
-    up: event.node.Up,
-    info: event.node.Info
+    id: event.node.config.id,
+    label: event.node.config.id,
+    name: event.node.config.name,
+    up: event.node.up,
+    info: event.node.info
     //control: event.control,
   };
 
@@ -580,6 +580,7 @@ function init3DVisualisation() {
                 .graphData(this.graphData);
   this.sidebar = new P2Pd3Sidebar('#sidebar', this);
   this.vis3D.onNodeClick(nodeSelected);
+  this.vis3D.cooldownTime(10000);
 
   var canvas = $(visDOM).find("canvas");
   canvas.attr("width", $(visDOM).css("width"));
