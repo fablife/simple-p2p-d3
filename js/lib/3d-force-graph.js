@@ -5,6 +5,7 @@
 	(global.ForceGraph3D = factory());
 }(this, (function () { 'use strict';
 
+
 function __$styleInject(css, returnValue) {
   if (typeof document === 'undefined') {
     return returnValue;
@@ -205,6 +206,9 @@ Object.assign( EventDispatcher.prototype, {
 	}
 
 } );
+
+
+var HAS_ZOOMED = false;
 
 var REVISION = '86';
 var MOUSE = { LEFT: 0, MIDDLE: 1, RIGHT: 2 };
@@ -44366,7 +44370,6 @@ THREE.TrackballControls = function ( object, domElement ) {
 			}
 
 		}
-
 	};
 
 	this.panCamera = ( function() {
@@ -51128,6 +51131,7 @@ var _3dForceGraph = createComponent({
 		new Prop('forceEngine', 'd3'), // d3 or ngraph
 		new Prop('warmupTicks', 0), // how many times to tick the force engine at init before starting to render
 		new Prop('cooldownTicks', Infinity),
+		new Prop('resetCam', true),
 		new Prop('cooldownTime', 15000) // ms
 	],
 
@@ -51206,6 +51210,7 @@ var _3dForceGraph = createComponent({
 		// Setup camera
 		state.camera = new THREE.PerspectiveCamera();
 		state.camera.far = 20000;
+    state.last_z = state.camera.position.z;
 
 		// Add camera interaction
 		const tbControls = new THREE.TrackballControls(state.camera, state.renderer.domElement);
@@ -51301,10 +51306,11 @@ var _3dForceGraph = createComponent({
 			state.graphScene.add(link.__line = line);
 		});
 
-		if (state.camera.position.x === 0 && state.camera.position.y === 0) {
+		if (state.camera.position.x === 0 && state.camera.position.y === 0 && state.last_z == state.camera.position.z) {
 			// If camera still in default position (not user modified)
 			state.camera.lookAt(state.graphScene.position);
 			state.camera.position.z = Math.cbrt(state.graphData.nodes.length) * CAMERA_DISTANCE2NODES_FACTOR;
+      state.last_z = state.camera.position.z;
 		}
 
 		// Feed data to force-directed layout
