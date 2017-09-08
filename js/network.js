@@ -1,4 +1,5 @@
 var BACKEND_URL='http://localhost:8888';
+var NODE_SIMULATOR='http://localhost:8889';
 
 var m = 0;
 var s = 0;
@@ -188,7 +189,7 @@ function handleNodeEvent(event) {
     info: event.node.info
     //control: event.control,
   };
-
+console.log(el);
   if (el.up) {
     addNode(el);
   } else {
@@ -318,7 +319,7 @@ function clearViz() {
   
 
 function startViz(){
-  $.post(BACKEND_URL + "/mock/" + selectedSim).then(
+  $.get(NODE_SIMULATOR + "/runSim").then(
     function(d) {
       startTimer();
       $(".display .label").text("Simulation running");
@@ -339,7 +340,7 @@ function startViz(){
 
 function initializeServer(){
   eventHistory = [];
-  init3DVisualisation();
+  this.sidebar = new P2Pd3Sidebar('#sidebar', this);
   $("#error-messages").hide();
   $(".display").css({"opacity": "1"});
   $.get(BACKEND_URL).then(
@@ -362,6 +363,7 @@ function initializeServer(){
 
 function startSim() {
   $(".display .label").text("Connecting with backend...");
+  init3DVisualisation();
   setupEventStream();
   //loadExistingNodes();
 }
@@ -372,11 +374,13 @@ function stopNetwork() {
   $("#stop").addClass("stale");
   $("#power").addClass("stale");
   
-  $.post(BACKEND_URL + "/stop").then(
+  $.post(BACKEND_URL + "/reset");
+  $.get(NODE_SIMULATOR + "/stopSim").then(
     function(d) {
       eventSource.close();
       clearInterval(clockId);
       resetTimer();
+      resetVisualisation();
       $("#stop").addClass("invisible");
       $("#stop").removeClass("stale");
       $("#snapshot").addClass("invisible");
@@ -578,7 +582,6 @@ function init3DVisualisation() {
   this.vis3D = ForceGraph3D()
                 (document.getElementById("3d-graph"))
                 .graphData(this.graphData);
-  this.sidebar = new P2Pd3Sidebar('#sidebar', this);
   this.vis3D.onNodeClick(nodeSelected);
   this.vis3D.cooldownTime(10000);
 
@@ -587,6 +590,18 @@ function init3DVisualisation() {
   canvas.attr("height", $(visDOM).css("height"));
   canvas.attr("position", "fixed");
 
+}
+
+function resetVisualisation() {
+  this.vis3D.resetProps();
+  this.graphData = {
+    nodes: [],
+    links: [],
+    msgs:  []
+  };
+  this.sidebar.resetCounters();
+  this.vis3D.graphData(this.graphData);
+  $(visDOM).find("canvas").html("");
 }
 
 function nodeSelected(node) {
