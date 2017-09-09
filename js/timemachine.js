@@ -97,46 +97,23 @@ var rangeListener = function(timeEvent, fwd) {
 }
 
 function setupTimemachine() {
-  var sim = $("#network-visualisation").clone(true, true);
-  sim.attr("id", "timemachine-visualisation");
-  sim.appendTo("#visualisation-wrapper");
-  Timemachine = new P2Pd3(d3.select("#timemachine-visualisation"));
-  var self = Timemachine;
-  Timemachine.skipCollectionSetup = true; 
-  Timemachine.sidebar = visualisation.sidebar; 
-  Timemachine.sidebar.visualisation = self; 
-  TimemachineIndex = 0;
   /*
-  Timemachine.graphNodes = $.extend(true, [], visualisation.graphNodes);
-  Timemachine.graphLinks = $.extend(true, [], visualisation.graphLinks);
-  Timemachine.nodesById  = $.extend(true, {}, visualisation.nodesById);
-  Timemachine.connsById  = $.extend(true, {}, visualisation.connsById);
+  var sim = $("#3d-graph").clone(true, true);
+  sim.attr("id", "timemachine-visualisation");
+  sim.appendTo("#visualisation-wrapper"); 
   */
-  Timemachine.nodeCollection = Timemachine.svg.selectAll("circle").data(self.graphNodes);
-  Timemachine.nodeCollection
-    .on("click", function(d) {
-        //deselect
-        Timemachine.nodeCollection.classed("selected", function(p) { if (p) {return p.selected = p.previouslySelected = false;} });
-        //select
-        d3.select(this).classed("selected",true);
-        Timemachine.sidebar.updateSidebarSelectedNode(d);
-    }) 
-    /*
-    .call(d3.drag()
-        .on("start", function(d){ self.dragstarted(self.simulation, d); } )
-        .on("drag", function(d){ self.dragged(d); } )
-        .on("end", function(d){ self.dragended(self.simulation, d); } ));
-    */
-    ;
-
-  Timemachine.linkCollection = Timemachine.svg.selectAll("line").data(self.graphLinks);
+  //Timemachine = new P2Pd3(d3.select("#timemachine-visualisation"));
+  //resetVisualisation();
+  init3DVisualisation();
+  //Timemachine = vis3D;
+  TimemachineIndex = 0;
 
   currHistoryIndex = eventHistory.length -1;
   //$("#timemachine").val(100);
   $("#timemachine").val(0);
 
-  $("#timemachine-visualisation").show();
-  $("#network-visualisation").hide();
+  //$("#timemachine-visualisation").show();
+  //$("#network-visualisation").hide();
 }
 
 function continueReplay() {
@@ -149,12 +126,8 @@ function pauseReplay() {
 
 TimemachineReplay = function() {
   if (!TimemachineIndex) {
-    d3.select("#timemachine-visualisation").selectAll("*").remove();
-    Timemachine.sidebar.resetCounters();
-    Timemachine.graphNodes = [];
-    Timemachine.graphLinks = [];
-    Timemachine.nodesById  = {};
-    Timemachine.connsById  = {};
+    //Timemachine.resetProps();
+    //sidebar.resetCounters();
     $("#timemachine").val(0);
   }
   replayInterval = setInterval(function() {TimemachineStep(TimemachineIndex)}, replaySpeed);
@@ -163,7 +136,7 @@ TimemachineReplay = function() {
 TimemachineStep = function(idx) {
   TimemachineForward(idx);
   if (idx == eventHistory.length - 1) {
-    Timemachine.simulation.stop();
+    //Timemachine.simulation.stop();
     clearInterval(replayInterval);
     $("#power").removeClass("stale");
     $("#play").addClass("fa-play-circle");
@@ -181,8 +154,7 @@ TimemachineForward = function(idx) {
   var content     = $.extend(true, {}, evt.content);
   $("#time-elapsed").text(time);
 
-  Timemachine.updateVisualisation(content); 
-  //Timemachine.sidebar.updateSidebarCounts(newNodes, newLinks, removeNodes, removeLinks);
+  handleEvent(content); 
 }
 
 
@@ -192,6 +164,5 @@ TimemachineBackward = function(idx) {
   var content     = evt.content;
   $("#time-elapsed").text(time);
 
-  Timemachine.updateVisualisation(content); 
-  //Timemachine.sidebar.updateSidebarCounts(newNodes, newLinks, removeNodes, removeLinks);
+  handleEvent(content); 
 }

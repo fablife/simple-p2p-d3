@@ -37,6 +37,7 @@ var connRemoveCounter     = 0;
 var doLog                 = false;
 
 var visDOM                = "#3d-graph";
+var visDOMClone           = null;
 var detail                = {};
 
 var nodesById             = {};          
@@ -44,6 +45,7 @@ var selectedNode          = null;
 var updateSelection       = false;
 
 var operation             = "";
+var initialized           = false;
 
 
 
@@ -81,6 +83,8 @@ function setVisualisationFrame() {
   $(visDOM).css("display", "inline-block");
   $(visDOM).css("width", viswidth);
   $(visDOM).css("height", visheight);
+
+  visDoOMClone = $(visDOM).clone(false,false);
 }
 
 function pollServer() {
@@ -114,23 +118,8 @@ function setupEventStream() {
       return;
     }
 
-    switch(event.type) {
+    handleEvent(event);
 
-      case "node":
-        handleNodeEvent(event);
-        break;
-      
-      case "conn":
-        handleConnEvent(event); 
-        break;
-
-      case "msg":
-        handleMsgEvent(event);
-        break;
-
-    }
-    eventCounter++;
-    update3DGraph();
     var evtCopy = $.extend(true, {}, event);
     eventHistory.push({timestamp:$("#time-elapsed").text(), content: evtCopy});
     if (updateSelection) {
@@ -161,6 +150,26 @@ function setupEventStream() {
   }
 }
 
+function handleEvent(event) {
+    switch(event.type) {
+
+      case "node":
+        handleNodeEvent(event);
+        break;
+      
+      case "conn":
+        handleConnEvent(event); 
+        break;
+
+      case "msg":
+        handleMsgEvent(event);
+        break;
+
+    }
+    eventCounter++;
+    update3DGraph();
+}
+
 function setupFilterOptions() {
   let queryOptions = "";
   if (rec_messages) {
@@ -189,7 +198,6 @@ function handleNodeEvent(event) {
     info: event.node.info
     //control: event.control,
   };
-console.log(el);
   if (el.up) {
     addNode(el);
   } else {
@@ -303,7 +311,7 @@ function selectMockerBackend(id) {
 
 function clearViz() {
   //d3.select("#network-visualisation").selectAll("*").remove();
-  visualisation.sidebar.resetCounters();
+  sidebar.resetCounters();
   $("#power").removeClass("power-off");
   $("#power").addClass("power-on");
   $("#play").addClass("invisible");
@@ -312,9 +320,11 @@ function clearViz() {
   $("#refresh").addClass("invisible");
   $("#show-conn-graph").addClass("invisible");
   $(".timemachine-section").hide("fast");
-  $("#timemachine-visualisation").hide();
+  resetVisualization();
+  init3DVisualisation();
+  //$("#timemachine-visualisation").hide();
   //$("#network-visualisation").show();
-  $(visDOM).show();
+  //$(visDOM).show();
 }
   
 
@@ -572,18 +582,22 @@ function funcClose() {
 }
 
 function init3DVisualisation() {
-  var self = this;
 
   this.graphData = {
     nodes: [],
     links: [],
     msgs:  []
   };
-  this.vis3D = ForceGraph3D()
+  var orinode = document.getElementById("3d-graph")
+  var clone = orinode.cloneNode();
+  var parent = orinode.parentNode;
+  parent.removeChild(orinode);
+  parent.append(clone);
+  vis3D = ForceGraph3D()
                 (document.getElementById("3d-graph"))
                 .graphData(this.graphData);
-  this.vis3D.onNodeClick(nodeSelected);
-  this.vis3D.cooldownTime(10000);
+  vis3D.onNodeClick(nodeSelected);
+  vis3D.cooldownTime(10000);
 
   var canvas = $(visDOM).find("canvas");
   canvas.attr("width", $(visDOM).css("width"));
@@ -593,15 +607,17 @@ function init3DVisualisation() {
 }
 
 function resetVisualisation() {
-  this.vis3D.resetProps();
-  this.graphData = {
+  vis3D.resetProps();
+  graphData = {
     nodes: [],
     links: [],
     msgs:  []
   };
-  this.sidebar.resetCounters();
-  this.vis3D.graphData(this.graphData);
+  sidebar.resetCounters();
+  sidebar.clearSelection();
+  vis3D.graphData(this.graphData);
   $(visDOM).find("canvas").html("");
+  //document.getElementById("3d-graph") = document.getElementById("3d-graph"),cloneNode();
 }
 
 function nodeSelected(node) {
