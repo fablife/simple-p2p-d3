@@ -4,13 +4,14 @@ $(document).ready(function() {
   $('#power').on('click',function(){ 
     if ($(this).hasClass("power-off")) {
       if ($("#timemachine").is(":visible")) {
-        pauseReplay();
-        clearViz();
+        terminateTimemachine();
       } 
       initializeServer(); 
     } else {
       stopNetwork(); 
     }
+    $("#status-messages").hide();
+    $(this).find(".control-label").text("Power");
   });
 
   $('#stop').on('click',function(){ 
@@ -23,9 +24,11 @@ $(document).ready(function() {
       continueReplay(); 
       $(this).removeClass("fa-play-circle");
       $(this).addClass("fa-pause");
+      $(this).find('.control-label').text("Pause");
     } else {
       $(this).addClass("fa-play-circle");
       $(this).removeClass("fa-pause");
+      $(this).find('.control-label').text("Continue");
       pauseReplay(); 
     }
   });
@@ -70,6 +73,10 @@ $(document).ready(function() {
     */
   });
 
+  $("#show-conn-graph").click(function() {
+    showConnectionGraph();
+  });
+/*
   $('.menuitem').on('click',function(){ 
     switch ($(this).attr("id")) {
       case "selectmocker": 
@@ -81,7 +88,7 @@ $(document).ready(function() {
               break;
     }
   });
-
+*/
   $("#showlogs").change(function() {
     if ($('#showlogs').is(":checked") ) {
       $('#output-window').show("slow"); 

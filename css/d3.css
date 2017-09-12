@@ -240,19 +240,27 @@ input[type=range]:focus::-ms-fill-upper {
   padding: 20px;
 }
 
-.controls{
+.controls {
   padding: 10px 20px 6px;
   border-radius: 20px 20px;
-  height: 40px;
+  height: 60px;
   background: linear-gradient(#ccc, #555);
   font-size: 2em;
   display: flex;
 }
 
 .controls .fa {
-  margin: 2px 10px 0px;
+  margin: 5px 0px;
   color: white;
   cursor: pointer;
+  text-align: center;
+  width: 45px;
+}
+
+.control-label {
+  font-size: 10px;
+  color: white;
+  text-align: center;
 }
 
 .control-options {
@@ -267,6 +275,8 @@ input[type=range]:focus::-ms-fill-upper {
 .control-options.hidden {
   height: 0px;
   opacity: 0;
+  padding: 0;
+  float: left;
 }
 
 .control-options .fa {
@@ -811,9 +821,7 @@ label span {/* <-- style the artificial checkbox */
 
 #visualisation-options {
   font-size: 0.7em;
-  color: #111;
-  line-height: 1.3em;
-  margin-right: -10px;
+  margin: 10px -10px 0px 5px;
 }
 
 .filter-options {

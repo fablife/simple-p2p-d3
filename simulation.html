@@ -5,6 +5,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1, maximum-scale=1">
     <script src="js/lib/3d-force-graph.js"></script>
+    <script src="js/lib/d3.v4.min.js"></script>
 <!--
     <script src="js/lib/3d-force-graph@1.5.0.min.js"></script>
 -->
@@ -50,21 +51,24 @@
         </div>
         -->
       </header>
+        <!-- Currently disabled
       <menu>
        <ul class="mainmenu">
           <li id="selectmocker" class="menuitem">Select Mocker</li>
        </ul>  
       </menu> 
+        -->
       <div id="sidebar" class=sidebar>
         <div class="controls">
-          <i id="power" class="fa fa-power-off power-off" aria-hidden="true"></i>
-          <i id="start" class="invisible fa fa-play" aria-hidden="true"></i>
-          <i id="stop" class="invisible fa fa-stop" aria-hidden="true"></i>
-          <i id="upload" class="invisible fa fa-upload" aria-hidden="true"></i>
-          <i id="snapshot" class="invisible fa fa-camera-retro" aria-hidden="true"></i>
-          <i id="play" class="invisible fa fa-play-circle" aria-hidden="true"></i>
-          <i id="refresh" class="invisible fa fa-fast-backward" aria-hidden="true"></i>
-          <i id="search-node" class="invisible fa fa-search" aria-hidden="true"></i>
+          <i id="power" class="fa fa-power-off power-off" aria-hidden="true"><div class="control-label">Power</div></i>
+          <i id="start" class="invisible fa fa-play" aria-hidden="true"><div class="control-label">Start</div></i>
+          <i id="stop" class="invisible fa fa-stop" aria-hidden="true"><div class="control-label">Stop</div></i>
+          <i id="upload" class="invisible fa fa-upload" aria-hidden="true"><div class="control-label">Upload snapshot</div></i>
+          <i id="snapshot" class="invisible fa fa-camera-retro" aria-hidden="true"><div class="control-label">Take snapshot</div></i>
+          <i id="play" class="invisible fa fa-play-circle" aria-hidden="true"><div class="control-label">Replay last run</div></i>
+          <i id="refresh" class="invisible fa fa-fast-backward" aria-hidden="true"><div class="control-label">Rewind last run</div></i>
+          <i id="search-node" class="invisible fa fa-search" aria-hidden="true"><div class="control-label">Search node</div></i>
+          <i id="show-conn-graph" class="invisible fa fa-pie-chart"><div class="control-label">Last run graph</div></i>
           <div class="display">
             <div class="elapsed">Time elapsed: <span id="time-elapsed">00:00:00</span></div>
             <div class="label">
@@ -73,7 +77,7 @@
               -->
             </div>
           </div>
-          <i id="visualisation-options" class="fa fa-cog" aria-hidden="true"></i>
+          <i id="visualisation-options" class="fa fa-cog" aria-hidden="true"><div class="control-label">Settings</div></i>
         </div>
 
         <div class="sidebar-content"> 
@@ -129,10 +133,9 @@
                 </div>
               </div>
             </div>
-            <button id="show-conn-graph" onclick="showConnectionGraph()" class="invisible link-action">Show connection graph </button>
-            <i id="info-message-events" class="fa info-circle" aria-hidden="true"></i>
           </div>
 
+            <i id="info-message-events" class="fa info-circle" aria-hidden="true"></i>
           <div class="timemachine-section">
             <input id="timemachine" style="display:none" type="range">
             <div>

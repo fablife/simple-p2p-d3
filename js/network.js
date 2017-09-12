@@ -309,9 +309,10 @@ function selectMockerBackend(id) {
   funcClose();
 }
 
-function clearViz() {
-  //d3.select("#network-visualisation").selectAll("*").remove();
-  sidebar.resetCounters();
+function terminateTimemachine() {
+  pauseReplay();
+  resetVisualisation();
+  $(".timemachine-section").hide("fast");
   $("#power").removeClass("power-off");
   $("#power").addClass("power-on");
   $("#play").addClass("invisible");
@@ -319,15 +320,8 @@ function clearViz() {
   $("#play").removeClass("fa-pause");
   $("#refresh").addClass("invisible");
   $("#show-conn-graph").addClass("invisible");
-  $(".timemachine-section").hide("fast");
-  resetVisualization();
-  init3DVisualisation();
-  //$("#timemachine-visualisation").hide();
-  //$("#network-visualisation").show();
-  //$(visDOM).show();
 }
   
-
 function startViz(){
   $.get(NODE_SIMULATOR + "/runSim").then(
     function(d) {
@@ -447,6 +441,7 @@ function replayViz() {
   $("#play").removeClass("invisible");
   $(".timemachine-section").show("slow");
   $(".display .label").text("Replaying last simulation run.");
+  $('#power').find('.control-label').text("Reset");
 }
 
 function takeSnapshot() {
@@ -504,7 +499,7 @@ function saveSnapshot(snapshot) {
 }
 
 function showConnectionGraph() {
-  //d3.select("#chord-diagram").selectAll("*").remove();
+  d3.select("#chord-diagram").selectAll("*").remove();
   putOverlay();
   chord = new P2PConnectionsDiagram();  
   chord.setupDiagram(false);
