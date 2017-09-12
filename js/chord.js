@@ -73,7 +73,7 @@ class P2PConnectionsDiagram {
         .attr("dy", ".35em")
         .attr("text-anchor", function(d) { return d.angle > Math.PI ? "end" : null; }) 
         .attr("transform", function(d) { return "rotate(" + (d.angle * 180 / Math.PI - 90) + ") translate(" + (self.outerRadius+10) + ")" + (d.angle > Math.PI ? "rotate(180)" : ""); })
-        .text(function(d) { return nodeShortLabel(visualisation.sources[d.index])});
+        .text(function(d) { return nodeShortLabel(sources[d.index])});
         //.filter(function(d) { return d.value > 110; })
         //.text(function(d) { return "hallo"});
 
@@ -120,23 +120,23 @@ class P2PConnectionsDiagram {
 
   buildMatrix(messageGraph) {
     var matrix = [];
-    visualisation.sources.sort();
-    for (var i=0; i< visualisation.sources.length; i++) {
-      matrix.push(Array(visualisation.sources.length).fill(0));
+    sources.sort();
+    for (var i=0; i< sources.length; i++) {
+      matrix.push(Array(sources.length).fill(0));
     }
-    for (var id in visualisation.connCounter) {
-      var src = visualisation.connsById[id].source;
-      var tgt = visualisation.connsById[id].target;
-      var i = visualisation.sources.indexOf(src);
-      var j = visualisation.sources.indexOf(tgt);
+    for (var id in connsById) {
+      var src = connsById[id].source;
+      var tgt = connsById[id].target;
+      var i = sources.indexOf(src);
+      var j = sources.indexOf(tgt);
       if (messageGraph) {
-        if (visualisation.connCounter[id].msgCount) {
-          matrix[i][j] = visualisation.connCounter[id].msgCount;
+        if (connsById[id].msgCount) {
+          matrix[i][j] = connsById[id].msgCount;
         } else {
           matrix[i][j] = 0;
         }
       } else {
-        matrix[i][j] = visualisation.connCounter[id].connCount;
+        matrix[i][j] = connsById[id].connCount;
       }
     }
 

@@ -33,6 +33,8 @@ var nodeAddCounter        = 0;
 var nodeRemoveCounter     = 0;
 var connAddCounter        = 0;
 var connRemoveCounter     = 0;
+var sources               = [];
+var connsById             = {};
 
 var doLog                 = false;
 
@@ -46,7 +48,6 @@ var updateSelection       = false;
 
 var operation             = "";
 var initialized           = false;
-
 
 
 const HIGHLIGHT_LINK_COLOR  = 0x07C288;
@@ -269,6 +270,18 @@ function addConnection(el) {
   if (doLog) {
     writeLog("conn",event.control,el.id,"ADD");
   }
+
+  if (!connsById[el.id]) {
+    connsById[el.id] = {};
+    connsById[el.id].msgCount = 0;
+    connsById[el.id].connCount= 0;
+    connsById[el.id].source = el.source;
+    connsById[el.id].target = el.target;
+  };
+  connsById[el.id].connCount += 1;
+  if (sources.indexOf(el.source) == -1) {
+    sources.push(el.source);
+  }
 }
 
 function removeConnection(el) {
@@ -298,6 +311,9 @@ function handleMsgEvent(event) {
     //control: event.control
   });
   msgCounter++;
+  if (connsById[el.id] && connsById[el.id].msgCount !== undefined) {
+    connsById[el.id].msgCount += 1;
+  }
   if (doLog) {
     writeLog("msg",event.control,el.id,"");
   }
@@ -313,8 +329,8 @@ function terminateTimemachine() {
   pauseReplay();
   resetVisualisation();
   $(".timemachine-section").hide("fast");
-  $("#power").removeClass("power-off");
-  $("#power").addClass("power-on");
+  $("#power").addClass("power-off");
+  $("#power").removeClass("power-on");
   $("#play").addClass("invisible");
   $("#play").addClass("fa-play-circle");
   $("#play").removeClass("fa-pause");
@@ -331,6 +347,7 @@ function startViz(){
       $("#rec_messages").attr("disabled",true);
       $("#power").removeClass("power-off");
       $("#power").addClass("power-on");
+      $("#power").prop("disabled", true);
       $("#stop").removeClass("invisible");
       $("#start").addClass("invisible");
       $("#upload").addClass("invisible");
@@ -395,6 +412,7 @@ function stopNetwork() {
       $("#power").addClass("power-off");
       $("#power").removeClass("stale");
       $("#refresh").removeClass("invisible");
+      $('#power').find('.control-label').text("Reset");
     },
     function(d) {
       $(".display .label").text("Failed to stop network!");
@@ -402,6 +420,14 @@ function stopNetwork() {
       $("#power").removeClass("stale");
     }
   );
+}
+
+function resetUI() {
+  $("#show-conn-graph").addClass("invisible");
+  $("#search-node").addClass("invisible");
+  $("#refresh").addClass("invisible");
+  $("#power").removeClass("power-on");
+  $("#power").addClass("power-off");
 }
 
 function loadExistingNodes() {
@@ -441,7 +467,6 @@ function replayViz() {
   $("#play").removeClass("invisible");
   $(".timemachine-section").show("slow");
   $(".display .label").text("Replaying last simulation run.");
-  $('#power').find('.control-label').text("Reset");
 }
 
 function takeSnapshot() {
@@ -465,7 +490,7 @@ function uploadSnapshot() {
 }
 
 function doUploadSnapshot() {
-  console.log(this.files);
+  //console.log(this.files);
   var f = this.files[0];
   //console.log(f);
   //var snapshot = JSON.parse(new FileReader().readAsText(f));
@@ -476,7 +501,8 @@ function doUploadSnapshot() {
     $.post(BACKEND_URL + "/snapshot", snapshot).then(
       function(d){
         console.log("snapshot uploaded");
-        loadExistingNodes();
+        setupEventStream();
+        //loadExistingNodes();
         $("#upload").addClass("invisible");
         $("#start").addClass("invisible");
         $("#stop").removeClass("invisible");
@@ -484,9 +510,11 @@ function doUploadSnapshot() {
       function(e){
         console.log("Uploading snapshot failed");
         console.log(e);
+        $.post(BACKEND_URL + "/reset");
       });
   }
   reader.onerror = function(e) {
+    console.log("ERROR loading snapshot file!");
   }
 }
 

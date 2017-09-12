@@ -6,6 +6,7 @@ $(document).ready(function() {
       if ($("#timemachine").is(":visible")) {
         terminateTimemachine();
       } 
+      resetUI();
       initializeServer(); 
     } else {
       stopNetwork(); 
@@ -16,6 +17,7 @@ $(document).ready(function() {
 
   $('#stop').on('click',function(){ 
     stopNetwork(); 
+    $("#power").prop("disabled", false);
     $("#status-messages").hide();
   });
 
