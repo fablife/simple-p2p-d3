@@ -5,11 +5,6 @@ var m = 0;
 var s = 0;
 var clockId;
 
-var mockerlist            = [];
-var mockerlist_generated  = false;
-var defaultSim            = "default";
-var selectedSim           = defaultSim;
-
 var eventSource           = null;
 var eventHistory          = null; 
 var currHistoryIndex      = 0;
@@ -49,6 +44,7 @@ var updateSelection       = false;
 var operation             = "";
 var initialized           = false;
 
+var snapshotMode          = false; 
 
 const HIGHLIGHT_LINK_COLOR  = 0x07C288;
 const NORMAL_LINK_COLOR     = 0xf0f0f0;
@@ -339,6 +335,10 @@ function terminateTimemachine() {
 }
   
 function startViz(){
+  if (snapshotMode) {
+    console.log("Snapsshot mode; not starting node simulator");
+    return;
+  }
   $.get(NODE_SIMULATOR + "/runSim").then(
     function(d) {
       startTimer();
@@ -384,9 +384,9 @@ function initializeServer(){
 
 function startSim() {
   $(".display .label").text("Connecting with backend...");
+  snapshotMode = false;
   init3DVisualisation();
   setupEventStream();
-  //loadExistingNodes();
 }
 
 function stopNetwork() {
@@ -430,35 +430,6 @@ function resetUI() {
   $("#power").addClass("power-off");
 }
 
-function loadExistingNodes() {
-  $.get(BACKEND_URL + "/nodes").then(
-    function(d) {
-      var graph = {
-        newNodes: [],
-        newLinks: [],
-        removeNodes: [],
-        removeLinks: [],
-        message: []
-      };
-      
-      for (var i=0; i<d.length; i++) {
-        var el = {
-          id: d[i].id,
-          name:d[i].name,
-          up: true,
-          control: false 
-        };
-        graph.newNodes.push(el);
-      }
-      console.log("Successfully loaded existing node list");
-      //console.log(graph.add);
-      updateVisualisationWithClass(graph);
-    },
-    function(d) {
-      console.log("Error getting nodes list from backend");
-    });
-}
-
 function replayViz() {
   $("#timemachine").show();
   setupTimemachine();
@@ -493,16 +464,16 @@ function doUploadSnapshot() {
   //console.log(this.files);
   var f = this.files[0];
   //console.log(f);
-  //var snapshot = JSON.parse(new FileReader().readAsText(f));
   var reader = new FileReader();
   reader.readAsText(f);
   reader.onload = function(e) {
     var snapshot = reader.result;
     $.post(BACKEND_URL + "/snapshot", snapshot).then(
       function(d){
+        snapshotMode = true;
         console.log("snapshot uploaded");
+        init3DVisualisation();
         setupEventStream();
-        //loadExistingNodes();
         $("#upload").addClass("invisible");
         $("#start").addClass("invisible");
         $("#stop").removeClass("invisible");
@@ -544,55 +515,6 @@ function showConnectionGraph() {
   });
   dialog.append('<div id="close" class="close" onclick="funcClose(this);">X</div>');
 } 
-
-
-function selectMocker() {
-  $.get(BACKEND_URL + "/mock"). then(
-    function(d) {
-      console.log("Successfully retrieved mocker list");
-      console.log(d);
-      mockerlist = d;
-      showSelectDialog();
-    },
-    function(e,s,err) {
-      $("#error-messages").show();
-      $("#error-reason").text("Failed to retrieve mocker list.");
-      console.log(e);
-    });
-}
-
-function showSelectDialog() {
-  putOverlay();
-  if (mockerlist_generated == true) {
-    $("#select-mocker").show("slow");
-  } else {
-    var dframe = $(document.createElement('div'));
-    dframe.attr("class","dialogframe");
-    var table = $(document.createElement('table'));
-    table.attr("class","objectlist");
-    $.each(mockerlist, function(k,v) {
-      var tr = $(document.createElement('tr'));
-      tr.attr("class","selectelement");
-      var td = $(document.createElement('td'));
-      td.attr("id",k);
-      td.click(function() { selectMockerBackend($(this).attr("id"));});
-      td.append(v); 
-      tr.append(td);
-      table.append(tr);
-    }) 
-    dframe.append(table);
-    var dialog = $("#select-mocker");
-    dialog.append(dframe);
-    dialog.append('<div id="close" class="close" onclick="funcClose(this);">X</div>');
-    dialog.css({
-          'margin-left': -dialog.outerWidth() / 2 + 'px',
-          'margin-top':  -dialog.outerHeight() / 2 + 'px',
-          'visibility': "visible"
-    });
-    dialog.show();
-    mockerlist_generated = true;
-  }
-}
 
 function putOverlay() {
   $('#Overlay').show();

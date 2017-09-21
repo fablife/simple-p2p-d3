@@ -78,19 +78,7 @@ $(document).ready(function() {
   $("#show-conn-graph").click(function() {
     showConnectionGraph();
   });
-/*
-  $('.menuitem').on('click',function(){ 
-    switch ($(this).attr("id")) {
-      case "selectmocker": 
-              selectMocker();
-              $("menu").hide("slow");
-              break;
-      default: 
-              selectMocker();
-              break;
-    }
-  });
-*/
+
   $("#showlogs").change(function() {
     if ($('#showlogs').is(":checked") ) {
       $('#output-window').show("slow"); 
@@ -114,8 +102,6 @@ $(document).ready(function() {
   $("#search-node").click(function() {
     findNode();
   });
-
-  $('#selected-simulation').text(selectedSim);
 
   //pollServer();
   setVisualisationFrame();
