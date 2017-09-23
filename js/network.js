@@ -45,6 +45,8 @@ var initialized           = false;
 
 var snapshotMode          = false; 
 
+var frozen                = false;
+
 const HIGHLIGHT_LINK_COLOR  = 0x07C288;
 const NORMAL_LINK_COLOR     = 0xf0f0f0;
 
@@ -164,6 +166,25 @@ function handleEvent(event) {
     }
     eventCounter++;
     update3DGraph();
+}
+
+function toggleFreeze() {
+  $("#freeze").toggleClass("power-off");
+  frozen = !frozen;
+  let ori = $("#3d-graph");
+  if (frozen) {
+    var clone = $("<div id='frozen'></div>");
+    ori.parent().append(clone);
+    var cloneGraph = ForceGraph3D()
+                (document.getElementById("frozen"))
+                .graphData(this.graphData);
+    cloneGraph.onNodeClick(nodeSelected);
+    cloneGraph.cooldownTime(10000);
+    ori.css("visibility", "hidden");
+  } else {
+    $("#frozen").remove();
+    ori.css("visibility","visible");
+  }
 }
 
 function setupFilterOptions() {
@@ -348,6 +369,7 @@ function startViz(){
       $("#power").addClass("power-on");
       $("#power").prop("disabled", true);
       $("#stop").removeClass("invisible");
+      $("#freeze").removeClass("invisible");
       $("#start").addClass("invisible");
       $("#upload").addClass("invisible");
       $("#snapshot").removeClass("invisible");
@@ -420,6 +442,7 @@ function stopNetwork() {
       $("#stop").addClass("invisible");
       $("#stop").removeClass("stale");
       $("#snapshot").addClass("invisible");
+      $("#freeze").addClass("invisible");
       $("#show-conn-graph").removeClass("invisible");
       $(".display .label").text("Simulation stopped. Network deleted.");
       $("#rec_messages").attr("disabled",false);
