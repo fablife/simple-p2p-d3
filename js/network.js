@@ -402,6 +402,7 @@ function stopNetwork() {
       clearInterval(clockId);
       resetTimer();
       resetVisualisation();
+      $("#search-node").addClass("invisible");
       $("#stop").addClass("invisible");
       $("#stop").removeClass("stale");
       $("#snapshot").addClass("invisible");
