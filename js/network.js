@@ -173,14 +173,17 @@ function toggleFreeze() {
   frozen = !frozen;
   let ori = $("#3d-graph");
   if (frozen) {
+    ori.css("visibility", "hidden");
     var clone = $("<div id='frozen'></div>");
     ori.parent().append(clone);
+    var clonedData = $.extend(true,{},graphData);  
     var cloneGraph = ForceGraph3D()
                 (document.getElementById("frozen"))
-                .graphData(this.graphData);
+                .graphData(clonedData);
+    clone.find("canvas").css("position","absolute");
+    clone.find("canvas").css("top","0");
     cloneGraph.onNodeClick(nodeSelected);
-    cloneGraph.cooldownTime(10000);
-    ori.css("visibility", "hidden");
+    cloneGraph.cooldownTime(0);
   } else {
     $("#frozen").remove();
     ori.css("visibility","visible");
