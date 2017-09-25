@@ -727,12 +727,20 @@ label {
   margin-right: 5px;
 }
 
-input[type=text] {
+input[type=text],
+input[type=number] {
   border: 1px solid #f69047;
   height: 20px;
   margin: 0 20px;
   padding: 0 10px;
   background-color: #303030;
+  color: #f69047;
+}
+
+.sim-options {
+  border: 1px solid #f69047;
+  background-color: #303030;
+  padding: 3px 10px;
   color: #f69047;
 }
 

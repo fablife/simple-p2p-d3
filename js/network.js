@@ -1,5 +1,4 @@
 var BACKEND_URL='http://localhost:8888';
-var NODE_SIMULATOR='http://localhost:8889';
 
 var m = 0;
 var s = 0;
@@ -339,7 +338,7 @@ function startViz(){
     console.log("Snapsshot mode; not starting node simulator");
     return;
   }
-  $.get(NODE_SIMULATOR + "/runSim").then(
+  $.post(BACKEND_URL + "/mocker/start",{"node-count": $("#node-count").val(), "mocker-type":$("#mocker-type-selector").val()}).then(
     function(d) {
       startTimer();
       $(".display .label").text("Simulation running");
@@ -380,6 +379,21 @@ function initializeServer(){
       console.log("Error connecting to backend at: " + BACKEND_URL);
       console.log(e);
     });
+  $.get(BACKEND_URL + "/mocker").then(
+    function(d){
+      let mockerlist = d;
+      for (let i=0;i<mockerlist.length; i++) {
+        let option = $('<option id="' + mockerlist[i] + '" value="' + mockerlist[i] + '">' + mockerlist[i] + '</option>');
+        if (mockerlist[i] == "probabilistic") {
+          option.attr("selected","selected");
+        } 
+        $("#mocker-type-selector").append(option);
+      } 
+    },
+    function(e,s,err) {
+      console.log("error getting mocker list");
+      console.log(e);
+    });
 };
 
 function startSim() {
@@ -396,7 +410,7 @@ function stopNetwork() {
   $("#power").addClass("stale");
   
   $.post(BACKEND_URL + "/reset");
-  $.get(NODE_SIMULATOR + "/stopSim").then(
+  $.post(BACKEND_URL + "/mocker/stop").then(
     function(d) {
       eventSource.close();
       clearInterval(clockId);
