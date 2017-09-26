@@ -266,19 +266,11 @@ input[type=range]:focus::-ms-fill-upper {
 
 .control-options {
   padding: 10px;
-  position: relative;
-  opacity: 1;
   font-size: 0.8em;
   padding-top: 15px;
-  transition: all .5s cubic-bezier(.4,0,.2,1);
+  display: none;
 }
 
-.control-options.hidden {
-  height: 0px;
-  opacity: 0;
-  padding: 0;
-  float: left;
-}
 
 .control-options .fa {
   color: white;
@@ -743,6 +735,10 @@ input[type=number] {
   background-color: #303030;
   padding: 3px 10px;
   color: #f69047;
+}
+
+.option-item {
+  margin-bottom: 16px;
 }
 
 .timemachine-section label {

@@ -71,27 +71,30 @@
             <button type="button" class="nodeactions" onclick="getNodeById()">Find Node</button>
           </div>
 
-          <div class="control-options hidden">
-            <label for="node-count">Number of nodes for simulation</label>
-            <input id="node-count" min="5" max="1000" width="5" type="number" class="" name="node-count" value="30">
-            <br/>
-            <br/>
-            <label for="mocker-type">Mocker Type</label>
-            <select class="sim-options" id="mocker-type-selector">
-            </select> 
-            <br/>
-            <br/>
-            <label for="showlog">Enable log console</label>
-            <label>
-                  <input type="checkbox" id="showlogs" name="showlogs" value="true">
+          <div class="control-options">
+            <div id="general-options">
+              <div class="option-item">
+                <label for="node-count">Number of nodes for simulation</label>
+                <input id="node-count" min="5" max="1000" width="5" type="number" class="" name="node-count" value="30">
+              </div>
+              <div class="option-item">
+                <label for="mocker-type">Mocker Type</label>
+                <select class="sim-options" id="mocker-type-selector">
+                </select> 
+                </div>
+              <div class="option-item">
+                <label for="showlogs">Enable log console</label>
+                <label>
+                      <input type="checkbox" id="showlogs" name="showlogs" value="true">
+                      <span></span>
+                </label>
+                <label for="rec-messages">Enable message events</label>
+                <label>
+                  <input id="rec-messages" type="checkbox" class="checkbox"/>
                   <span></span>
-            </label>
-            <label for="replaySpeed">Enable message events</label>
-            <label>
-              <input id="rec-messages" type="checkbox" class="checkbox"/>
-              <span></span>
-            </label>
-            <br/>
+                </label>
+              </div>
+            </div>
             <div id="message-filters">
               <input type="radio" class="selected-protocol" name="selected-protocol" checked="checked" value="pss">pss
               <input type="radio" class="selected-protocol" name="selected-protocol" value="hive">hive

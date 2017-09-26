@@ -23,6 +23,7 @@ $(document).ready(function() {
 
   $('#play').on('click',function(){ 
     if ($(this).hasClass("fa-play-circle")) {
+      TimemachinePlaying = true;
       continueReplay(); 
       $(this).removeClass("fa-play-circle");
       $(this).addClass("fa-pause");
@@ -60,6 +61,7 @@ $(document).ready(function() {
       rec_messages = true;
       $("#message-filters").show("slow");
     } else {
+      $("#message-filters").hide("slow");
       rec_messages = false;
     }
   });
@@ -100,7 +102,12 @@ $(document).ready(function() {
   });
 
   $('#visualisation-options').on('click', function() {
-    $('.control-options').toggleClass("hidden");
+    if ($('.control-options').is(":visible")) {
+      $('.control-options').hide("fast");
+    } else {
+      $('.control-options').show("fast");
+    }
+
   });
 
   $("#search-node").click(function() {

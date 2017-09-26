@@ -12,6 +12,10 @@ $(document).ready(function() {
   onRangeChange(timemachine, rangeListener);
   */
   $(".speedDial").on("click", function() {
+
+    if (!TimemachinePlaying) {
+      return;
+    }
     var $button = $(this);
     var oldValue = $button.parent().find("input").val();
     var newVal = 0;
@@ -44,6 +48,7 @@ $(document).ready(function() {
 
 var TimemachineIndex  = 0;
 var replayInterval    = false;
+var TimemachinePlaying= false;
 var replaySpeed       = 200;
 
 function onRangeChange(ranger, listener) {
@@ -97,23 +102,12 @@ var rangeListener = function(timeEvent, fwd) {
 }
 
 function setupTimemachine() {
-  /*
-  var sim = $("#3d-graph").clone(true, true);
-  sim.attr("id", "timemachine-visualisation");
-  sim.appendTo("#visualisation-wrapper"); 
-  */
-  //Timemachine = new P2Pd3(d3.select("#timemachine-visualisation"));
-  //resetVisualisation();
   init3DVisualisation();
-  //Timemachine = vis3D;
   TimemachineIndex = 0;
 
   currHistoryIndex = eventHistory.length -1;
   //$("#timemachine").val(100);
   $("#timemachine").val(0);
-
-  //$("#timemachine-visualisation").show();
-  //$("#network-visualisation").hide();
 }
 
 function continueReplay() {
@@ -126,8 +120,6 @@ function pauseReplay() {
 
 TimemachineReplay = function() {
   if (!TimemachineIndex) {
-    //Timemachine.resetProps();
-    //sidebar.resetCounters();
     $("#timemachine").val(0);
   }
   replayInterval = setInterval(function() {TimemachineStep(TimemachineIndex)}, replaySpeed);
@@ -137,6 +129,7 @@ TimemachineStep = function(idx) {
   TimemachineForward(idx);
   if (idx == eventHistory.length - 1) {
     //Timemachine.simulation.stop();
+    TimemachinePlaying = false;
     clearInterval(replayInterval);
     $("#power").removeClass("stale");
     $("#play").addClass("fa-play-circle");
