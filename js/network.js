@@ -148,6 +148,7 @@ function setupEventStream() {
   }
 }
 
+//TODO: evaluate: what about creating a queue for better performance
 function handleEvent(event) {
     switch(event.type) {
 
@@ -322,13 +323,14 @@ function handleMsgEvent(event) {
   if (!rec_messages) {
     return;
   }
-  this.graphData.msgs.push({
+  var el = {
     id:     event.msg.one + "-" + event.msg.other,
     source: event.msg.one,
     target: event.msg.other,
     up:     event.msg.up,
     //control: event.control
-  });
+  }
+  this.graphData.msgs.push(el);
   msgCounter++;
   if (connsById[el.id] && connsById[el.id].msgCount !== undefined) {
     connsById[el.id].msgCount += 1;
@@ -404,21 +406,23 @@ function initializeServer(){
       console.log("Error connecting to backend at: " + BACKEND_URL);
       console.log(e);
     });
-  $.get(BACKEND_URL + "/mocker").then(
-    function(d){
-      let mockerlist = d;
-      for (let i=0;i<mockerlist.length; i++) {
-        let option = $('<option id="' + mockerlist[i] + '" value="' + mockerlist[i] + '">' + mockerlist[i] + '</option>');
-        if (mockerlist[i] == "probabilistic") {
-          option.attr("selected","selected");
+  if ($("#mocker-type-selector option").size() == 0) {
+    $.get(BACKEND_URL + "/mocker").then(
+      function(d){
+        let mockerlist = d;
+        for (let i=0;i<mockerlist.length; i++) {
+          let option = $('<option id="' + mockerlist[i] + '" value="' + mockerlist[i] + '">' + mockerlist[i] + '</option>');
+          if (mockerlist[i] == "probabilistic") {
+            option.attr("selected","selected");
+          } 
+          $("#mocker-type-selector").append(option);
         } 
-        $("#mocker-type-selector").append(option);
-      } 
-    },
-    function(e,s,err) {
-      console.log("error getting mocker list");
-      console.log(e);
-    });
+      },
+      function(e,s,err) {
+        console.log("error getting mocker list");
+        console.log(e);
+      });
+    }
 };
 
 function startSim() {
@@ -583,7 +587,7 @@ function init3DVisualisation() {
                 (document.getElementById("3d-graph"))
                 .graphData(this.graphData);
   vis3D.onNodeClick(nodeSelected);
-  vis3D.cooldownTime(10000);
+  vis3D.cooldownTime(0);
 
   var canvas = $(visDOM).find("canvas");
   canvas.attr("width", $(visDOM).css("width"));
@@ -603,15 +607,13 @@ function resetVisualisation() {
   sidebar.clearSelection();
   vis3D.graphData(this.graphData);
   $(visDOM).find("canvas").html("");
+  connsById = {};
   //document.getElementById("3d-graph") = document.getElementById("3d-graph"),cloneNode();
 }
 
 function nodeSelected(node) {
   $(".sm-dialog").hide();
   selectedNode = node;
-  if (this.detailView) {
-    this.detailView = null;
-  }
   self.sidebar.updateSidebarSelectedNode(node);    
 }
 

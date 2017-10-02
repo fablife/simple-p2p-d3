@@ -1,3 +1,4 @@
+var detailGraphData = {};
 class P2Pd3Sidebar {
 
   constructor(selector, viz) {
@@ -20,7 +21,6 @@ class P2Pd3Sidebar {
       return;
     }
 
-
     this.getNodeInfo(data.id);
   }
 
@@ -32,44 +32,78 @@ class P2Pd3Sidebar {
   }
 
   updateGraph(node) {
-    this.detailView.graphData(this.buildGraphData(node).graphData);
+    this.detailView.graphData(this.buildGraphData(node));
   }
 
   buildGraphData(node) {
-    var nodes = [node];
+    var nodes = [];
     var conns = [];
     var nodeSet = new Set();
 
+    var nodeCopy = { 
+      id: "selected_node",
+      label: node.name,
+      name: node.name,
+      color: node.color
+    };
+    nodeSet.add(nodeCopy);
+
+    var cnt = 0;
+
     for (let c of this.visualisation.graphData.links) {
       if (c.source.id == node.id) {
-        conns.push(c);
-        nodeSet.add(c.target);
+        var tarCopy = {
+          id: "target_" + cnt,
+          label: c.target.name,
+          name: c.target.name 
+        };
+        var conn = {
+            source: nodeCopy.id,
+            target: tarCopy.id,
+            color:  NORMAL_LINK_COLOR,
+            opacity: 0.2,
+            distance: c.distance
+          };
+        conns.push(conn);
+        nodeSet.add(tarCopy);
       } else if (c.target.id == node.id) {
-        conns.push(c);
-        nodeSet.add(c.source);
+        var srcCopy = {
+          id: "source_" + cnt,
+          label: c.source.name,
+          name: c.source.name 
+        };
+        var conn = {
+          source: srcCopy.id,
+          target: nodeCopy.id,
+          color:  NORMAL_LINK_COLOR,
+          opacity: 0.2,
+          distance: c.distance
+        };
+        conns.push(conn);
+        nodeSet.add(srcCopy);
       }
+      cnt += 1;
     }
-    for (let n of nodeSet) {
-      nodes.push(n);
-    }
-    detail.graphData = {
+    nodes = Array.from(nodeSet);
+    detailGraphData = {
       nodes: nodes,
-      links: conns,
-      msgs:  []
+      links: conns
     };
-    return detail;
+
+    return detailGraphData;
   }
 
   selectConnections(node) {
     var self = this;
     if (this.detailView) {
-      this.detailView = null;
-    }
-    this.detailView = ForceGraph3D()
-                  (document.getElementById("graph-detail"))
-                  .graphData(self.buildGraphData(node).graphData);
-    this.detailView.width("500");
-    this.detailView.height("500");
+      this.detailView = null; 
+    } 
+    
+      this.detailView = ForceGraph3D()
+        (document.getElementById("graph-detail"))
+        .graphData(self.buildGraphData(node));
+      this.detailView.width("500");
+      this.detailView.height("500");
     $("#graph-detail").addClass("appear");
     /*
     this.detailView.onNodeClick(function(node) {
@@ -96,6 +130,10 @@ class P2Pd3Sidebar {
           console.log(e);
         }
     );
+    /* 
+      DISABLE THIS WEBSOCKET RPC CALL FOR NOW AS IT'S NOT WORKING AND NEEDS REFACTORING
+      (ALSO IN THE BACKEND
+
     if (this.ws) {
       this.ws.close();
     }
@@ -131,6 +169,7 @@ class P2Pd3Sidebar {
     this.ws.addEventListener('error', function (event) {
       console.log('Error from server', event.data);
     });
+    */
   }
 
   updateSidebarCounts(nodes, links) {
