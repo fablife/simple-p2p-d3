@@ -64,26 +64,18 @@ class P2PConnectionsDiagram {
       .on("mouseout", fade(1));
 
     group.append("text")
-        //.attr("x", 6)
-        //.attr("dy", 15)
-        //.append("textPath")
-        //.attr("xlink:href", function(d) { return "#group" + d.index })
-        //.text(function(d) { return nodeShortLabel(visualisation.sources[d.index])});
         .each(function(d) {d.angle = (d.startAngle + d.endAngle) / 2  })
         .attr("dy", ".35em")
         .attr("text-anchor", function(d) { return d.angle > Math.PI ? "end" : null; }) 
         .attr("transform", function(d) { return "rotate(" + (d.angle * 180 / Math.PI - 90) + ") translate(" + (self.outerRadius+10) + ")" + (d.angle > Math.PI ? "rotate(180)" : ""); })
         .text(function(d) { return nodeShortLabel(sources[d.index])});
-        //.filter(function(d) { return d.value > 110; })
-        //.text(function(d) { return "hallo"});
 
     var self = this;
 
     var groupTick = group.selectAll(".group-tick")
       .data(function(d) { return self.groupTicks(d, 1e3); })
       .enter().append("g")
-      .attr("class", "group-tick")
-      //.attr("transform", function(d) { return "rotate(" + (d.angle * 180 / Math.PI - 90) + ") translate(" + this.outerRadius + ",0)"; });
+      .attr("class", "group-tick");
 
     groupTick.append("line")
       .attr("x2", 6);
@@ -95,7 +87,6 @@ class P2PConnectionsDiagram {
       .attr("dy", ".35em")
       .attr("transform", function(d) { return d.angle > Math.PI ? "rotate(180) translate(-16)" : null; })
       .style("text-anchor", function(d) { return d.angle > Math.PI ? "end" : null; })
-      //.text(function(d) { return formatValue(d.value); });
       .text(function(d) { return "hallo"});
 
     g.append("g")
@@ -125,17 +116,21 @@ class P2PConnectionsDiagram {
       matrix.push(Array(sources.length).fill(0));
     }
     for (var id in connsById) {
-      var src = connsById[id].source;
-      var tgt = connsById[id].target;
-      var i = sources.indexOf(src);
-      var j = sources.indexOf(tgt);
       if (messageGraph) {
-        if (connsById[id].msgCount) {
-          matrix[i][j] = connsById[id].msgCount;
+        var src = msgById[id].source;
+        var tgt = msgById[id].target;
+        var i = sources.indexOf(src);
+        var j = sources.indexOf(tgt);
+        if (msgById[id].msgCount) {
+          matrix[i][j] = msgById[id].msgCount;
         } else {
           matrix[i][j] = 0;
         }
       } else {
+        var src = connsById[id].source;
+        var tgt = connsById[id].target;
+        var i = sources.indexOf(src);
+        var j = sources.indexOf(tgt);
         matrix[i][j] = connsById[id].connCount;
       }
     }

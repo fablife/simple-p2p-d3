@@ -29,6 +29,7 @@ var connAddCounter        = 0;
 var connRemoveCounter     = 0;
 var sources               = [];
 var connsById             = {};
+var msgById               = {};
 
 var doLog                 = false;
 
@@ -293,8 +294,7 @@ function addConnection(el) {
 
   if (!connsById[el.id]) {
     connsById[el.id] = {};
-    connsById[el.id].msgCount = 0;
-    connsById[el.id].connCount= 0;
+    connsById[el.id].connCount= 1;
     connsById[el.id].source = el.source;
     connsById[el.id].target = el.target;
   };
@@ -330,11 +330,15 @@ function handleMsgEvent(event) {
     up:     event.msg.up,
     //control: event.control
   }
+  if (!msgById[el.id]) {
+    msgById[el.id] = {};
+    msgById[el.id].msgCount = 0;
+    msgById[el.id].source = el.source;
+    msgById[el.id].target = el.target;
+  };
   this.graphData.msgs.push(el);
   msgCounter++;
-  if (connsById[el.id] && connsById[el.id].msgCount !== undefined) {
-    connsById[el.id].msgCount += 1;
-  }
+  msgById[el.id].msgCount += 1;
   if (doLog) {
     writeLog("msg",event.control,el.id,"");
   }
@@ -367,8 +371,10 @@ function startViz(){
   $.post(BACKEND_URL + "/mocker/start",{"node-count": $("#node-count").val(), "mocker-type":$("#mocker-type-selector").val()}).then(
     function(d) {
       startTimer();
+      connsById = {};
+      msgById = {};
+      sources   = []; 
       $(".display .label").text("Simulation running");
-      //console.log(new Date());
       $("#rec_messages").attr("disabled",true);
       $("#power").removeClass("power-off");
       $("#power").addClass("power-on");
@@ -392,13 +398,10 @@ function initializeServer(){
   $(".display").css({"opacity": "1"});
   $.get(BACKEND_URL).then(
     function(d){
-      //console.log(d);
-      //console.log("Backend ok");
       $(".elapsed").show();
       $("#start").removeClass("invisible");
       $("#refresh").addClass("invisible");
       $("#upload").removeClass("invisible");
-      //clearInterval(pollInterval);
     },
     function(e,s,err) {
       $("#error-messages").show();
@@ -551,6 +554,7 @@ function showConnectionGraph() {
   var diagram = $("#chord-diagram");
   if (rec_messages) {
     $("#toggle-chord").removeClass("invisible");
+    $('#toggle-chord').text("Show messages graph");
   }
   dialog.show("slow");
   dialog.css({
@@ -607,7 +611,6 @@ function resetVisualisation() {
   sidebar.clearSelection();
   vis3D.graphData(this.graphData);
   $(visDOM).find("canvas").html("");
-  connsById = {};
   //document.getElementById("3d-graph") = document.getElementById("3d-graph"),cloneNode();
 }
 

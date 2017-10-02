@@ -33,6 +33,7 @@ class P2Pd3Sidebar {
 
   updateGraph(node) {
     this.detailView.graphData(this.buildGraphData(node));
+    this.getNodeInfo(node.id);
   }
 
   buildGraphData(node) {
@@ -104,6 +105,7 @@ class P2Pd3Sidebar {
         .graphData(self.buildGraphData(node));
       this.detailView.width("500");
       this.detailView.height("500");
+      this.detailView.cooldownTime(0);
     $("#graph-detail").addClass("appear");
     /*
     this.detailView.onNodeClick(function(node) {
