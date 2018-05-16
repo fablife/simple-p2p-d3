@@ -185,7 +185,7 @@ function toggleFreeze() {
     clone.find("canvas").css("position","absolute");
     clone.find("canvas").css("top","0");
     cloneGraph.onNodeClick(nodeSelected);
-    cloneGraph.cooldownTime(0);
+    cloneGraph.cooldownTime(1000);
   } else {
     $("#frozen").remove();
     ori.css("visibility","visible");
@@ -207,6 +207,9 @@ function setupFilterOptions() {
     } else {
       queryOptions +=  ":" + $("input[name=devp2p-option]:checked").val();
     } 
+  }
+  if ($("input[name=throttle]:checked")) {
+    queryOptions += "&throttling=true"
   }
   return queryOptions;
 }
