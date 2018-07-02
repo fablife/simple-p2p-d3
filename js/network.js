@@ -127,7 +127,8 @@ function setupEventStream() {
   });
 
   eventSource.onopen = function() {
-    startViz(); 
+    //startViz(); 
+    runBackend();
     $("#message-filters").attr("disabled","disabled");
     if ($("#showlogs").is(":checked")) {
       doLog = true;
@@ -391,6 +392,30 @@ function startViz(){
   })
 }
 
+function runSimulation(){
+  eventHistory = [];
+  this.sidebar = new P2Pd3Sidebar('#sidebar', this);
+  $("#error-messages").hide();
+  $(".display").css({"opacity": "1"});
+  console.log("Sending run simulation signal to frontend...")
+      startSim();
+};
+
+
+function runBackend() {
+  $.post(BACKEND_URL + "/runsim").then(
+    function(d){
+      $(".elapsed").show();
+      console.log("OK. Starting frontend")
+    },
+    function(e,s,err) {
+      $("#error-messages").show();
+      $("#error-reason").text("Is the backend running?");
+      console.log("Error connecting to backend at: " + BACKEND_URL);
+      console.log(e);
+    });
+}
+
 function initializeServer(){
   eventHistory = [];
   this.sidebar = new P2Pd3Sidebar('#sidebar', this);
@@ -409,6 +434,7 @@ function initializeServer(){
       console.log("Error connecting to backend at: " + BACKEND_URL);
       console.log(e);
     });
+  return;
   if ($("#mocker-type-selector option").size() == 0) {
     $.get(BACKEND_URL + "/mocker").then(
       function(d){

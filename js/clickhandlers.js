@@ -1,5 +1,5 @@
 $(document).ready(function() {
-  
+  var RunWithSim = true; 
   //click handlers
   $('#power').on('click',function(){ 
     if ($(this).hasClass("power-off")) {
@@ -7,7 +7,8 @@ $(document).ready(function() {
         terminateTimemachine();
       } 
       resetUI();
-      initializeServer(); 
+      runSimulation();
+      //initializeServer(); 
     } else {
       stopNetwork(); 
     }
@@ -37,7 +38,8 @@ $(document).ready(function() {
   });
 
   $("#start").click(function() {
-    startSim();
+    //startSim();
+    runSimulation();
   });
 
   $("#freeze").click(function() {
