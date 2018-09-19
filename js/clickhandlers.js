@@ -38,8 +38,9 @@ $(document).ready(function() {
   });
 
   $("#start").click(function() {
-    //startSim();
-    runSimulation();
+    startSim();
+    setStarted();
+    //runSimulation();
   });
 
   $("#freeze").click(function() {
@@ -114,6 +115,10 @@ $(document).ready(function() {
 
   $("#search-node").click(function() {
     findNode();
+  });
+
+  $(".hash").click(function() {
+    showNodesForHash($(this).val());
   });
 
   //pollServer();

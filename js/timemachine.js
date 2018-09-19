@@ -102,12 +102,15 @@ var rangeListener = function(timeEvent, fwd) {
 }
 
 function setupTimemachine() {
-  init3DVisualisation();
   TimemachineIndex = 0;
-
   currHistoryIndex = eventHistory.length -1;
   //$("#timemachine").val(100);
   $("#timemachine").val(0);
+  if (rec_messages && !Timemachine) {
+    analyzeMsgs();
+  }
+  Timemachine = true;
+  init3DVisualisation();
 }
 
 function continueReplay() {
@@ -147,6 +150,11 @@ TimemachineForward = function(idx) {
   var content     = $.extend(true, {}, evt.content);
   $("#time-elapsed").text(time);
 
+  if (content.code != null) {
+    if (!(activeFilters.has(content.code))) {
+      return
+    }
+  }
   handleEvent(content); 
 }
 

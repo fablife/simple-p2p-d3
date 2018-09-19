@@ -15,7 +15,11 @@ class P2Pd3Sidebar {
     $('#selected-node').show();
     $('#full-node-id').val(data.id);
     $('#node-id').html(nodeShortLabel(data.id));
-    $('#node-name').text(data.name);
+    let nodelabel = data.name
+    if (nodelabel.length > 16) {
+      nodelabel = nodelabel.substr(0,16);
+    }
+    $('#node-name').text(nodelabel);
 
     if (this.visualisation == Timemachine) {
       return;

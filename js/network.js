@@ -1,4 +1,7 @@
 var BACKEND_URL='http://localhost:8888';
+var API_TRACES_URL='http://localhost:3000';
+var API_TRACES_URI = "/api/traces";
+var API_SERVICES_URI = "/api/services";
 
 var m = 0;
 var s = 0;
@@ -47,6 +50,10 @@ var initialized           = false;
 var snapshotMode          = false; 
 
 var frozen                = false;
+
+var hashesToNodes         = {};
+
+var activeFilterCode      = false;
 
 const HIGHLIGHT_LINK_COLOR  = 0x07C288;
 const NORMAL_LINK_COLOR     = 0xf0f0f0;
@@ -166,6 +173,26 @@ function handleEvent(event) {
         handleMsgEvent(event);
         break;
 
+      case "chunkCreated":
+        handleChunkCreated(event);
+        break;
+
+      case "chunkArrived":
+        handleChunkArrived(event);
+        break;
+
+      case "chunkOffered":
+        handleChunkOffered(event);
+        break;
+      case "chunkWanted":
+        handleChunkWanted(event);
+        break;
+      case "chunkDelivered":
+        handleChunkDelivered(event);
+        break;
+      case "simTerminated":
+        handleSimTerminated(event);
+        break;
     }
     eventCounter++;
     update3DGraph();
@@ -203,6 +230,7 @@ function setupFilterOptions() {
       let code = "";
       if ($("#msg-code").val() != "") {
         code = $("#msg-code").val();
+        activeFilterCode = code;
       } 
       queryOptions += ":" + code;
     } else {
@@ -210,6 +238,163 @@ function setupFilterOptions() {
     } 
   }
   return queryOptions;
+}
+
+function isFilterActive(code) {
+  if (Timemachine) {
+    return this.activeFilters.has(code)  
+  } else {
+    return activeFilterCode == code || activeFilterCode == "*";
+  }
+}
+
+function handleChunkOffered(event) {
+  if (!(rec_messages && isFilterActive(1))){
+    return
+  }
+  n= event.node.config.id;
+  for (let node of graphData.nodes) {
+    if (node.id == n) {
+      node["color"] = "#81ff97";
+    } 
+  }
+  this.vis3D.graphData(this.graphData);
+}
+
+function handleSimTerminated(event) {
+  setStopped();
+
+}
+
+function handleChunkWanted(event) {
+  if (!(rec_messages && isFilterActive(2))) {
+    return
+  }
+  n= event.node.config.id;
+  for (let node of graphData.nodes) {
+    if (node.id == n) {
+      node["color"] = "#ee12d3";
+    } 
+  }
+  this.vis3D.graphData(this.graphData);
+}
+
+function handleChunkDelivered(event) {
+  if (!(rec_messages && isFilterActive(6))) {
+    return
+  }
+  n= event.node.config.id;
+  for (let node of graphData.nodes) {
+    if (node.id == n) {
+      node["color"] = "#126aee";
+    } 
+  }
+  this.vis3D.graphData(this.graphData);
+}
+
+function handleChunkCreated(event) {
+  node = event.node.config.id;
+  if (hashesToNodes[event.data] == null) {
+    hashesToNodes[event.data] = [];
+  }
+  hashesToNodes[event.data].push(node);
+  n = $("<div class='hash'>" + event.data + "</div>");
+  n.on('click',function(){ 
+    showNodesForHash($(this).text());
+  });
+  $("#hashes").append(n);
+
+  for (let nd of graphData.nodes) {
+    if (nd.id == node) {
+      nd["color"] = "#ff0000";
+      nd["name"] = "UPLOADER";
+      nd["id"] = "UPLOADER";
+    } 
+  }
+  this.vis3D.graphData(this.graphData);
+}
+
+function handleChunkArrived(event) {
+  node = event.node.config.id;
+  if (hashesToNodes[event.data] == null) {
+    hashesToNodes[event.data] = [];
+  }
+  hashesToNodes[event.data].push(node);
+}
+
+function showNodesForHash(hash) {
+  queryOpentracingBackend(hash);
+  for (let node of graphData.nodes) {
+    node["color"] = "#ffff99";
+  }
+  for (let n of hashesToNodes[hash]) {
+    for (let node of graphData.nodes) {
+      if (node.id == n) {
+        node["color"] = "#f69047";
+      } 
+    }
+  }
+  this.vis3D.graphData(this.graphData);
+}
+
+function queryOpentracingBackend(hash) {
+  //initializeTraces();  
+}
+
+var initializeTraces = function() {
+  $.get(API_TRACES_URL + API_SERVICES_URI).then(
+    function(d) {
+      console.log("Received number of services");
+      $("#backend-nok").hide();
+      $("#backend-ok").fadeIn().css('display', 'inline-block');
+      getTraces(d.data)
+    },
+    function(d) {
+      console.log("Backend is NOT running");
+      $("#backend-nok").show("slow");
+      $("#backend-ok").hide("slow");
+    }
+   );
+}
+
+function getSwarmServices(data) {
+  var nodes = new Array();
+  for (i=0; i<data.length; i++) {
+    if (data[i].indexOf("swarm") > -1) {
+      let node = data[i]; 
+      nodes.push(node)
+    }
+  }
+  return nodes
+}
+
+function getTraces(data) {
+  nodes = getSwarmServices(data);
+  this.traces = {}
+  let traces = this.traces;
+  cnt = 0;
+
+  for (i=0;i<nodes.length; i++) {
+    let id = nodes[i];
+    $.get(API_TRACES_URL + API_TRACES_URI + "?service=" + id).then(
+      function(d) {
+        console.log("Received traces");
+        traces[id] = d.data; 
+        cnt++;
+        if (cnt == nodes.length) {
+          parseTraces(traces);
+        }
+      },
+      function(d) {
+        console.log("Error getting traces from backend");
+        console.log(d);
+      }
+     );
+  }
+}
+
+function parseTraces(traces) {
+
 }
 
 function handleNodeEvent(event) {
@@ -329,6 +514,8 @@ function handleMsgEvent(event) {
     source: event.msg.one,
     target: event.msg.other,
     up:     event.msg.up,
+    proto:  event.msg.protocol,
+    code:   event.msg.code
     //control: event.control
   }
   if (!msgById[el.id]) {
@@ -375,6 +562,14 @@ function startViz(){
       connsById = {};
       msgById = {};
       sources   = []; 
+      setStarted();
+  }, function(e) {
+      $("#error-messages").show();
+      $("#error-reason").text("Is the backend running?");
+  })
+}
+
+function setStarted() {
       $(".display .label").text("Simulation running");
       $("#rec_messages").attr("disabled",true);
       $("#power").removeClass("power-off");
@@ -386,10 +581,7 @@ function startViz(){
       $("#upload").addClass("invisible");
       $("#snapshot").removeClass("invisible");
       $("#search-node").removeClass("invisible");
-  }, function(e) {
-      $("#error-messages").show();
-      $("#error-reason").text("Is the backend running?");
-  })
+
 }
 
 function runSimulation(){
@@ -398,7 +590,9 @@ function runSimulation(){
   $("#error-messages").hide();
   $(".display").css({"opacity": "1"});
   console.log("Sending run simulation signal to frontend...")
-      startSim();
+      $("#start").removeClass("invisible");
+      $("#refresh").addClass("invisible");
+      $("#upload").removeClass("invisible");
 };
 
 
@@ -470,10 +664,22 @@ function stopNetwork() {
   $.post(BACKEND_URL + "/reset");
   $.post(BACKEND_URL + "/mocker/stop").then(
     function(d) {
+      resetVisualisation();
+      setStopped();
+    },
+    function(d) {
+      $(".display .label").text("Failed to stop network!");
+      $("#stop").removeClass("stale");
+      $("#power").removeClass("stale");
+    }
+  );
+}
+
+function setStopped() {
       eventSource.close();
       clearInterval(clockId);
       resetTimer();
-      resetVisualisation();
+      //resetVisualisation();
       $("#search-node").addClass("invisible");
       $("#stop").addClass("invisible");
       $("#stop").removeClass("stale");
@@ -487,13 +693,7 @@ function stopNetwork() {
       $("#power").removeClass("stale");
       $("#refresh").removeClass("invisible");
       $('#power').find('.control-label').text("Reset");
-    },
-    function(d) {
-      $(".display .label").text("Failed to stop network!");
-      $("#stop").removeClass("stale");
-      $("#power").removeClass("stale");
-    }
-  );
+
 }
 
 function resetUI() {
@@ -507,6 +707,7 @@ function resetUI() {
 function replayViz() {
   $("#timemachine").show();
   setupTimemachine();
+  $(".hash").remove();
   $("#stop").addClass("invisible");
   $("#refresh").addClass("invisible");
   $("#play").removeClass("invisible");
@@ -599,6 +800,28 @@ function funcClose() {
   $("#Overlay").hide("slow");
   $(".ui-dialog").hide("slow");
   $("#close").remove();
+}
+
+function analyzeMsgs() {
+  this.msgCodes = new Set(); 
+  for (let i=0; i<this.graphData.msgs.length; i++) {
+    let msg = this.graphData.msgs[i];
+    this.msgCodes.add(msg.code); 
+  }
+ 
+  $('#pss-options').remove();
+  for (let code of this.msgCodes) {
+    $('#message-filters').append('<input type="checkbox" class="replay-filter" name="replay-filter" onclick="replayFilterListener(this)" value="' + code +'">' + code);
+  }
+  this.activeFilters = new Set();
+}
+
+var replayFilterListener = function(checkbox) {
+  if ($(checkbox).is(":checked")) {
+    activeFilters.add(parseInt($(checkbox).val()));
+  } else {
+    activeFilters.delete(parseInt($(checkbox).val()));
+  }
 }
 
 function init3DVisualisation() {
